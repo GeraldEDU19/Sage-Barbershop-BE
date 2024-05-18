@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx tsc && node dist/index.js",
-    "dev": "nodemon --exec ts-node src/index.ts --env-file .env"
+    "dev": "nodemon --exec ts-node src/index.ts --env-file .env",
+    "prisma:push": "prisma db push --schema=src/prisma/schema.prisma"
   },
   "keywords": [],
   "author": "",
