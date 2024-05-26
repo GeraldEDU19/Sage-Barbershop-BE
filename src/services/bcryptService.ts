@@ -6,7 +6,7 @@ class BcryptService {
 
     constructor() {
         // Retrieve custom salt from process.env or use a default value
-        this.customSalt = process.env.CUSTOM_SALT || '$2a$10$fQX5OlI.Pc7R0VtYo2a7KO';
+        this.customSalt = process.env.Bcrypt_secret || '$2a$10$fQX5OlI.Pc7R0VtYo2a7KO';
         this.saltRounds = 10; // Number of rounds to generate the salt
     }
 
