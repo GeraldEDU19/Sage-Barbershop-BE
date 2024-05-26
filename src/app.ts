@@ -1,5 +1,6 @@
 import express from 'express';
 import userRoutes from './routes/userRoutes';
+import oauthRoutes from './routes/oauthRoutes';
 import prisma from './prisma/client';
 
 const app = express();
@@ -11,7 +12,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Rutas
-app.use('/api/users', userRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/oauth', oauthRoutes);
 
 // Middleware de manejo de errores
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
