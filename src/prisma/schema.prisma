@@ -14,12 +14,141 @@ datasource db {
 }
 
 model User {
+  id          Int             @id @default(autoincrement())
+  name        String
+  surname     String
+  phone       String
+  email       String          @unique
+  address     String
+  birthdate   DateTime
+  password    String
+  role        Role            @default(CLIENT)
+  Service     Service[]
+  Branch      Branch?         @relation(fields: [branchId], references: [id])
+  branchId    Int?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @default(now()) @updatedAt
+  Reservation Reservation[]
+  Invoice     InvoiceHeader[]
+}
+
+enum Role {
+  CLIENT
+  EMPLOYEE
+  ADMIN
+}
+
+model Branch {
+  id          Int             @id @default(autoincrement())
+  name        String
+  description String
+  phone       String
+  address     String
+  email       String          @unique
+  employee    User[]
+  Schedule    Schedule[]
+  Reservation Reservation[]
+  Invoice     InvoiceHeader[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @default(now()) @updatedAt
+}
+
+model Service {
+  id            Int             @id @default(autoincrement())
+  name          String
+  description   String
+  price         String
+  duration      Int
+  image         String?         @default("image-not-found.jpg")
+  employee      User            @relation(fields: [userId], references: [id])
+  userId        Int
+  Reservation   Reservation[]
+  InvoiceDetail InvoiceDetail[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now()) @updatedAt
+}
+
+model Product {
+  id            Int             @id @default(autoincrement())
+  name          String
+  description   String
+  category      String
+  price         Decimal         @db.Decimal(10, 2)
+  image         String?         @default("image-not-found.jpg")
+  quantity      Int
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now()) @updatedAt
+  InvoiceDetail InvoiceDetail[]
+}
+
+model Schedule {
   id        Int      @id @default(autoincrement())
-  name      String
-  lastname  String
-  email     String   @unique
-  password  String
-  dob       DateTime
+  date      DateTime
+  startTime DateTime
+  endTime   DateTime
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  branchId  Int
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model Reservation {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  status    Status   @relation(fields: [statusId], references: [id])
+  statusId  Int
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  branchId  Int
+  service   Service? @relation(fields: [serviceId], references: [id])
+  serviceId Int?
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model Status {
+  // PENDING - YELLOW #FFC107
+  // CONFIRMED - GREEN #4CAF50
+  // REPROGRAMMED - ORANGE #FF9800
+  // COMPLETED - BLUE #2196F3
+  // CANCELED - RED #F44336
+  // NO_SHOW - GRAY #9E9E9E
+  id          Int           @id @default(autoincrement())
+  description String
+  color       String        @db.VarChar(7)
+  Reservation Reservation[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now()) @updatedAt
+}
+
+model InvoiceHeader {
+  id            Int             @id @default(autoincrement())
+  date          DateTime
+  branch        Branch          @relation(fields: [branchId], references: [id])
+  branchId      Int
+  User          User            @relation(fields: [userId], references: [id])
+  userId        Int
+  tax           Decimal         @db.Decimal(10, 2)
+  total         Decimal         @db.Decimal(10, 2)
+  InvoiceDetail InvoiceDetail[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now()) @updatedAt
+}
+
+model InvoiceDetail {
+  sequence        Int
+  invoiceHeader   InvoiceHeader @relation(fields: [invoiceHeaderId], references: [id])
+  invoiceHeaderId Int
+  service         Service?      @relation(fields: [serviceId], references: [id])
+  serviceId       Int?
+  product         Product?      @relation(fields: [productId], references: [id])
+  productId       Int?
+  quantity        Int?
+  price           Decimal       @db.Decimal(10, 2)
+  subtotal        Decimal       @db.Decimal(10, 2)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @default(now()) @updatedAt
+
+  @@id([invoiceHeaderId, sequence]) // Clave primaria
 }
