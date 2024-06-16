@@ -1,0 +1,42 @@
+export const invoiceHeaders = [
+  {
+    date: new Date("2024-06-01"),
+    branchId: 1,
+    userId: 1,
+    tax: 1.5,
+    total: 16.5,
+    status: false,
+  },
+  {
+    date: new Date("2024-06-02"),
+    branchId: 2,
+    userId: 2,
+    tax: 1.0,
+    total: 11.0,
+    status: false,
+  },
+  {
+    date: new Date("2024-06-03"),
+    branchId: 3,
+    userId: 3,
+    tax: 1.2,
+    total: 13.2,
+    status: false,
+  },
+  {
+    date: new Date("2024-06-04"),
+    branchId: 4,
+    userId: 4,
+    tax: 5.0,
+    total: 55.0,
+    status: false,
+  },
+  {
+    date: new Date("2024-06-05"),
+    branchId: 5,
+    userId: 5,
+    tax: 2.5,
+    total: 27.5,
+    status: false,
+  },
+];

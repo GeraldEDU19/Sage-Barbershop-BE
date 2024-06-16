@@ -1,48 +1,168 @@
-import { Request, Response } from "express";
-import * as userService from "../services/userService";
-import prisma from "../prisma/client";
+import { PrismaClient, User } from "@prisma/client";
+import { Request, Response, NextFunction } from "express";
+import BcryptService from "../services/bcryptService";
 
-export async function get(req: Request, res: Response): Promise<void> {
-  const users = await userService.getAllUsers();
-  res.json(users);
-}
+const bcryptService = new BcryptService();
+const prisma = new PrismaClient();
 
-export const getById = async (req: Request, res: Response) => {
+// Obtener listado
+export const get = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const { id } = req.params;
-    const user = await prisma.user.findUnique({ where: { id: Number(id) } });
-    if (user) {
-      res.json(user);
-    } else {
-      res.status(404).json({ error: 'User not found' });
+    const list: User[] = await prisma.user.findMany({
+      orderBy: {
+        id: "asc",
+      },
+      include: {
+        Service: true,
+        Branch: true,
+        Reservation: true,
+        Invoice: true,
+      },
+    });
+    response.json(list);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Obtener por Id
+export const getById = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const idUser = parseInt(request.params.id);
+    const objUser = await prisma.user.findUnique({
+      where: { id: idUser },
+      include: {
+        Service: true,
+        Branch: true,
+        Reservation: true,
+        Invoice: true,
+      },
+    });
+    response.json(objUser);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Obtener por Email
+export const getByEmail = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const emailUser = request.params.email;
+    const objUser = await prisma.user.findUnique({
+      where: { email: emailUser },
+      include: {
+        Service: true,
+        Branch: true,
+        Reservation: true,
+        Invoice: true,
+      },
+    });
+    response.json(objUser);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Crear
+export const create = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const body = request.body;
+    body.password = await bcryptService.encryptText(body.password);
+    const newUser = await prisma.user.create({
+      data: {
+        name: body.name,
+        surname: body.surname,
+        phone: body.phone,
+        email: body.email,
+        address: body.address,
+        birthdate: new Date(body.birthdate),
+        password: body.password,
+        role: body.role,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      include: {
+        Service: true,
+        Branch: true,
+        Reservation: true,
+        Invoice: true,
+      },
+    });
+    response.json(newUser);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Actualizar un usuario
+export const update = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const body = request.body;
+    const idUser = parseInt(request.params.id);
+
+    // Obtener usuario viejo
+    const oldUser = await prisma.user.findUnique({
+      where: { id: idUser },
+      include: {
+        Service: true,
+        Branch: true,
+        Reservation: true,
+        Invoice: true,
+      },
+    });
+
+    if (!oldUser) {
+      return response.status(404).json({ message: "User not found" });
     }
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
 
-export const create = async (req: Request, res: Response) => {
-  try {
-    const { name, surname, phone, email, address, birthdate, password, role } = req.body;
-    const user = await prisma.user.create({
-      data: { name, surname, phone, email, address, birthdate: new Date(birthdate), password, role },
-    });
-    res.status(201).json(user);
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
+    if (body.password) {
+      body.password = await bcryptService.encryptText(body.password);
+    }
 
-export const update = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { name, surname, phone, email, address, birthdate, password, role } = req.body;
-    const user = await prisma.user.update({
-      where: { id: Number(id) },
-      data: { name, surname, phone, email, address, birthdate: new Date(birthdate), password, role },
+    const updatedUser = await prisma.user.update({
+      where: {
+        id: idUser,
+      },
+      data: {
+        name: body.name,
+        surname: body.surname,
+        phone: body.phone,
+        email: body.email,
+        address: body.address,
+        birthdate: new Date(body.birthdate),
+        password: body.password,
+        role: body.role,
+        updatedAt: new Date(),
+      },
+      include: {
+        Service: true,
+        Branch: true,
+        Reservation: true,
+        Invoice: true,
+      },
     });
-    res.json(user);
+    response.json(updatedUser);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };

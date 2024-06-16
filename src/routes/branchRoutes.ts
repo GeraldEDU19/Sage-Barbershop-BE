@@ -6,6 +6,6 @@ const router = Router();
 router.get('/', branchController.get);
 router.post('/', branchController.create);
 router.get('/:id', branchController.getById);
-router.post('/update', branchController.update);
+router.put('/:id', branchController.update);
 
 export default router;

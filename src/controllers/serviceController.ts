@@ -1,48 +1,114 @@
-import { Request, Response } from 'express';
-import prisma from '../prisma/client';
+import { PrismaClient, Service } from "@prisma/client";
+import { Request, Response, NextFunction } from "express";
 
-export const get = async (req: Request, res: Response) => {
+const prisma = new PrismaClient();
+
+// Obtener listado
+export const get = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const services = await prisma.service.findMany();
-    res.json(services);
+    const list: Service[] = await prisma.service.findMany({
+      orderBy: {
+        id: "asc",
+      },
+      include: {
+        employee: true,
+      },
+    });
+    response.json(list);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
-export const getById = async (req: Request, res: Response) => {
+// Obtener por Id
+export const getById = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const { id } = req.params;
-    const service = await prisma.service.findUnique({
-      where: { id: Number(id) },
+    const idService = parseInt(request.params.id);
+    const objService = await prisma.service.findFirst({
+      where: { id: idService },
+      include: {
+        employee: true,
+      },
     });
-    if (!service) return res.status(404).json({ error: 'Service not found' });
-    res.json(service);
+    response.json(objService);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
-export const create = async (req: Request, res: Response) => {
+// Crear
+export const create = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const service = await prisma.service.create({
-      data: req.body,
+    const body = request.body;
+    const newService = await prisma.service.create({
+      data: {
+        name: body.name,
+        description: body.description,
+        price: parseFloat(body.price),
+        duration: parseInt(body.duration, 10),
+        image: body.image || 'image-not-found.jpg',
+        employee: {
+          connect: { id: parseInt(body.userId, 10) },
+        },
+      },
     });
-    res.status(201).json(service);
+    response.json(newService);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
-export const update = async (req: Request, res: Response) => {
+// Actualizar un servicio
+export const update = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const { id } = req.params;
-    const service = await prisma.service.update({
-      where: { id: parseInt(id, 10) },
-      data: req.body,
+    const body = request.body;
+    const idService = parseInt(request.params.id);
+
+    // Obtener servicio viejo
+    const oldService = await prisma.service.findUnique({
+      where: { id: idService },
+      include: {
+        employee: true,
+      },
     });
-    res.status(200).json(service);
+
+    if (!oldService) {
+      return response.status(404).json({ message: "Service not found" });
+    }
+
+    const updatedService = await prisma.service.update({
+      where: {
+        id: idService,
+      },
+      data: {
+        name: body.name,
+        description: body.description,
+        price: parseFloat(body.price),
+        duration: parseInt(body.duration, 10),
+        image: body.image || 'image-not-found.jpg',
+        employee: {
+          connect: { id: parseInt(body.userId, 10) },
+        },
+      },
+    });
+    response.json(updatedService);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };

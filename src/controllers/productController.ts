@@ -1,48 +1,114 @@
-import { Request, Response } from 'express';
-import prisma from '../prisma/client';
+import { PrismaClient, Product } from "@prisma/client";
+import { Request, Response, NextFunction } from "express";
 
-export const get = async (req: Request, res: Response) => {
+const prisma = new PrismaClient();
+
+// Obtener listado
+export const get = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const products = await prisma.product.findMany();
-    res.json(products);
+    const list: Product[] = await prisma.product.findMany({
+      orderBy: {
+        id: "asc",
+      },
+      include: {
+        category: true,
+      },
+    });
+    response.json(list);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
-export const getById = async (req: Request, res: Response) => {
+// Obtener por Id
+export const getById = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const { id } = req.params;
-    const product = await prisma.product.findUnique({
-      where: { id: Number(id) },
+    const idProduct = parseInt(request.params.id);
+    const objProduct = await prisma.product.findFirst({
+      where: { id: idProduct },
+      include: {
+        category: true,
+      },
     });
-    if (!product) return res.status(404).json({ error: 'Product not found' });
-    res.json(product);
+    response.json(objProduct);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
-export const create = async (req: Request, res: Response) => {
+// Crear
+export const create = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const product = await prisma.product.create({
-      data: req.body,
+    const body = request.body;
+    const newProduct = await prisma.product.create({
+      data: {
+        name: body.name,
+        description: body.description,
+        price: parseFloat(body.price),
+        image: body.image,
+        quantity: parseInt(body.quantity, 10),
+        category: {
+          connect: { id: parseInt(body.categoryId, 10) },
+        },
+      },
     });
-    res.status(201).json(product);
+    response.json(newProduct);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
-export const update = async (req: Request, res: Response) => {
+// Actualizar un producto
+export const update = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const { id } = req.params;
-    const product = await prisma.product.update({
-      where: { id: parseInt(id, 10) },
-      data: req.body,
+    const body = request.body;
+    const idProduct = parseInt(request.params.id);
+
+    // Obtener producto viejo
+    const oldProduct = await prisma.product.findUnique({
+      where: { id: idProduct },
+      include: {
+        category: true,
+      },
     });
-    res.status(200).json(product);
+
+    if (!oldProduct) {
+      return response.status(404).json({ message: "Product not found" });
+    }
+
+    const updatedProduct = await prisma.product.update({
+      where: {
+        id: idProduct,
+      },
+      data: {
+        name: body.name,
+        description: body.description,
+        price: parseFloat(body.price),
+        image: body.image,
+        quantity: parseInt(body.quantity, 10),
+        category: {
+          connect: { id: parseInt(body.categoryId, 10) },
+        },
+      },
+    });
+    response.json(updatedProduct);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };

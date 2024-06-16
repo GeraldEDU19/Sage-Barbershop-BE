@@ -1,48 +1,123 @@
-import { Request, Response } from 'express';
-import prisma from '../prisma/client';
+import { PrismaClient, Schedule } from "@prisma/client";
+import { Request, Response, NextFunction } from "express";
 
-export const get = async (req: Request, res: Response) => {
+const prisma = new PrismaClient();
+
+// Obtener listado
+export const get = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const schedules = await prisma.schedule.findMany();
-    res.json(schedules);
+    const schedules: Schedule[] = await prisma.schedule.findMany({
+      orderBy: {
+        id: "asc",
+      },
+      include: {
+        branch: true,
+      },
+    });
+    response.json(schedules);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
-export const getById = async (req: Request, res: Response) => {
+// Obtener por Id
+export const getById = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const { id } = req.params;
+    const idSchedule = parseInt(request.params.id);
     const schedule = await prisma.schedule.findUnique({
-      where: { id: Number(id) },
+      where: { id: idSchedule },
+      include: {
+        branch: true,
+      },
     });
-    if (!schedule) return res.status(404).json({ error: 'Schedule not found' });
-    res.json(schedule);
+
+    if (!schedule) {
+      return response.status(404).json({ error: "Schedule not found" });
+    }
+
+    response.json(schedule);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
-export const create = async (req: Request, res: Response) => {
+// Crear
+export const create = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const schedule = await prisma.schedule.create({
-      data: req.body,
+    const body = request.body;
+
+    const status: boolean = body.status === 'true';
+
+    const newSchedule = await prisma.schedule.create({
+      data: {
+        startDate: new Date(body.startDate),
+        endDate: new Date(body.endDate),
+        status: status,
+        branch: {
+          connect: { id: parseInt(body.branchId, 10) },
+        },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
     });
-    res.status(201).json(schedule);
+    response.status(201).json(newSchedule);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
-export const update = async (req: Request, res: Response) => {
+// Actualizar un schedule
+export const update = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const { id } = req.params;
-    const schedule = await prisma.schedule.update({
-      where: { id: parseInt(id, 10) },
-      data: req.body,
+    const body = request.body;
+    const idSchedule = parseInt(request.params.id);
+
+    const status: boolean = body.status === 'true';
+
+    // Obtener schedule viejo
+    const oldSchedule = await prisma.schedule.findUnique({
+      where: { id: idSchedule },
+      include: {
+        branch: true,
+      },
     });
-    res.status(200).json(schedule);
+
+    if (!oldSchedule) {
+      return response.status(404).json({ error: "Schedule not found" });
+    }
+
+    const updatedSchedule = await prisma.schedule.update({
+      where: {
+        id: idSchedule,
+      },
+      data: {
+        startDate: new Date(body.startDate),
+        endDate: new Date(body.endDate),
+        status: status,
+        branch: {
+          connect: { id: parseInt(body.branchId, 10) },
+        },
+        updatedAt: new Date(),
+      },
+    });
+    response.status(200).json(updatedSchedule);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
