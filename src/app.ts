@@ -1,4 +1,5 @@
 import express from 'express';
+const cors = require('cors');
 import userRoutes from './routes/userRoutes';
 import oauthRoutes from './routes/oauthRoutes';
 import branchRoutes from './routes/branchRoutes';
@@ -11,7 +12,7 @@ import invoiceHeaderRoutes from './routes/invoiceHeaderRoutes';
 import prisma from './prisma/client';
 
 const app = express();
-
+app.use(cors());
 // Middleware para parsear JSON
 app.use(express.json());
 

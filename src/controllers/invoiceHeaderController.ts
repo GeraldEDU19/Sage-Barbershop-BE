@@ -10,7 +10,20 @@ export const get = async (
   next: NextFunction
 ) => {
   try {
+    const { id, date, branchId, userId, status } = request.query;
+
+    const filters: any = {};
+    
+    if (date) filters.date = new Date(date.toString());
+    if (id) filters.id = parseInt(id.toString(), 10);
+    if (branchId) filters.branchId = parseInt(branchId.toString(), 10);
+    if (userId) filters.userId = parseInt(userId.toString(), 10);
+    if (status) filters.status = status === 'true';
+
+    console.log("🚀 ~ filters:", filters)
+
     const list: InvoiceHeader[] = await prisma.invoiceHeader.findMany({
+      where: filters,
       orderBy: {
         id: "asc",
       },
