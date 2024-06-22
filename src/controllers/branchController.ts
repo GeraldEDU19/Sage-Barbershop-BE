@@ -1,48 +1,99 @@
-import { Request, Response } from "express";
-import prisma from "../prisma/client";
+import { PrismaClient, Branch } from "@prisma/client";
+import { Request, Response, NextFunction } from "express";
 
-export const get = async (req: Request, res: Response) => {
+const prisma = new PrismaClient();
+
+// Obtener listado
+export const get = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const branches = await prisma.branch.findMany();
-    res.json(branches);
+    const list: Branch[] = await prisma.branch.findMany({
+      orderBy: {
+        id: "asc",
+      },
+    });
+    response.json(list);
   } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
+    next(error);
   }
 };
 
-export const getById = async (req: Request, res: Response) => {
+// Obtener por Id
+export const getById = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const { id } = req.params;
-    const branch = await prisma.branch.findUnique({
-      where: { id: Number(id) },
+    const idBranch = parseInt(request.params.id);
+    const objBranch = await prisma.branch.findFirst({
+      where: { id: idBranch },
     });
-    if (!branch) return res.status(404).json({ error: "Branch not found" });
-    res.json(branch);
+    response.json(objBranch);
   } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
+    next(error);
   }
 };
 
-export const create = async (req: Request, res: Response) => {
+// Crear
+export const create = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const branch = await prisma.branch.create({
-      data: req.body,
+    const body = request.body;
+    const newBranch = await prisma.branch.create({
+      data: {
+        name: body.name,
+        description: body.description,
+        phone: body.phone,
+        address: body.address,
+        email: body.email,
+      },
     });
-    res.status(201).json(branch);
+    response.json(newBranch);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
-export const update = async (req: Request, res: Response) => {
+// Actualizar una sucursal
+export const update = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const { id } = req.params;
-    const branch = await prisma.branch.update({
-      where: { id: parseInt(id, 10) },
-      data: req.body,
+    const body = request.body;
+    const idBranch = parseInt(request.params.id);
+
+    // Obtener sucursal vieja
+    const oldBranch = await prisma.branch.findUnique({
+      where: { id: idBranch },
     });
-    res.status(200).json(branch);
+
+    if (!oldBranch) {
+      return response.status(404).json({ message: "Branch not found" });
+    }
+
+    const updatedBranch = await prisma.branch.update({
+      where: {
+        id: idBranch,
+      },
+      data: {
+        name: body.name,
+        description: body.description,
+        phone: body.phone,
+        address: body.address,
+        email: body.email,
+      },
+    });
+    response.json(updatedBranch);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };

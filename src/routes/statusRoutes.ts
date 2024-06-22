@@ -6,6 +6,6 @@ const router = Router();
 router.get('/', statusController.get);
 router.post('/', statusController.create);
 router.get('/:id', statusController.getById);
-router.post('/update', statusController.update);
+router.put('/:id', statusController.update);
 
 export default router;

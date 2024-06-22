@@ -6,6 +6,8 @@ const router = Router();
 router.get('/', invoiceHeaderController.get);
 router.post('/', invoiceHeaderController.create);
 router.get('/:id', invoiceHeaderController.getById);
-router.post('/update', invoiceHeaderController.update);
+router.put('/:id', invoiceHeaderController.update);
+router.post('/detail', invoiceHeaderController.createDetail);
+router.put('/detail/:id', invoiceHeaderController.updateDetail);
 
 export default router;

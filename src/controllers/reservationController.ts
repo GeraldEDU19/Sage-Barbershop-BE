@@ -1,48 +1,147 @@
-import { Request, Response } from 'express';
-import prisma from '../prisma/client';
+import { PrismaClient, Reservation } from "@prisma/client";
+import { Request, Response, NextFunction } from "express";
 
-export const get = async (req: Request, res: Response) => {
+const prisma = new PrismaClient();
+
+// Obtener listado
+export const get = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const reservations = await prisma.reservation.findMany();
-    res.json(reservations);
+    const list: Reservation[] = await prisma.reservation.findMany({
+      orderBy: {
+        id: "asc",
+      },
+      include: {
+        status: true,
+        branch: true,
+        service: true,
+        User: true,
+      },
+    });
+    response.json(list);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
-export const getById = async (req: Request, res: Response) => {
+// Obtener por Id
+export const getById = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const { id } = req.params;
-    const reservation = await prisma.reservation.findUnique({
-      where: { id: Number(id) },
+    const idReservation = parseInt(request.params.id);
+    const objReservation = await prisma.reservation.findFirst({
+      where: { id: idReservation },
+      include: {
+        status: true,
+        branch: true,
+        service: true,
+        User: true,
+      },
     });
-    if (!reservation) return res.status(404).json({ error: 'Reservation not found' });
-    res.json(reservation);
+    response.json(objReservation);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
-export const create = async (req: Request, res: Response) => {
+// Crear
+export const create = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const reservation = await prisma.reservation.create({
-      data: req.body,
+    const body = request.body;
+    const newReservation = await prisma.reservation.create({
+      data: {
+        date: new Date(body.date),
+        answer1: body.answer1,
+        answer2: body.answer2,
+        answer3: body.answer3,
+        status: {
+          connect: { id: parseInt(body.statusId, 10) },
+        },
+        branch: {
+          connect: { id: parseInt(body.branchId, 10) },
+        },
+        service: body.serviceId
+          ? {
+              connect: { id: parseInt(body.serviceId, 10) },
+            }
+          : undefined,
+        User: body.userId
+          ? {
+              connect: { id: parseInt(body.userId, 10) },
+            }
+          : undefined,
+      },
     });
-    res.status(201).json(reservation);
+    response.json(newReservation);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
-export const update = async (req: Request, res: Response) => {
+// Actualizar una reservación
+export const update = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
-    const { id } = req.params;
-    const reservation = await prisma.reservation.update({
-      where: { id: parseInt(id, 10) },
-      data: req.body,
+    const body = request.body;
+    const idReservation = parseInt(request.params.id);
+
+    // Obtener reservación vieja
+    const oldReservation = await prisma.reservation.findUnique({
+      where: { id: idReservation },
+      include: {
+        status: true,
+        branch: true,
+        service: true,
+        User: true,
+      },
     });
-    res.status(200).json(reservation);
+
+    if (!oldReservation) {
+      return response.status(404).json({ message: "Reservation not found" });
+    }
+
+    const updatedReservation = await prisma.reservation.update({
+      where: {
+        id: idReservation,
+      },
+      data: {
+        date: new Date(body.date),
+        answer1: body.answer1,
+        answer2: body.answer2,
+        answer3: body.answer3,
+        status: {
+          connect: { id: parseInt(body.statusId, 10) },
+        },
+        branch: {
+          connect: { id: parseInt(body.branchId, 10) },
+        },
+        service: body.serviceId
+          ? {
+              connect: { id: parseInt(body.serviceId, 10) },
+            }
+          : undefined,
+        User: body.userId
+          ? {
+              connect: { id: parseInt(body.userId, 10) },
+            }
+          : undefined,
+      },
+    });
+    response.json(updatedReservation);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
