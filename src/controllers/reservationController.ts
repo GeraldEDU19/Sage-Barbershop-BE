@@ -9,8 +9,17 @@ export const get = async (
   response: Response,
   next: NextFunction
 ) => {
+
+  const { id } = request.query;
+
+    const filters: any = {};
+
+    if (id) filters.id = parseInt(id.toString(), 10);
+
+
   try {
     const list: Reservation[] = await prisma.reservation.findMany({
+      where: filters,
       orderBy: {
         id: "asc",
       },
