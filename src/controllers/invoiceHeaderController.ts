@@ -20,7 +20,6 @@ export const get = async (
     if (userId) filters.userId = parseInt(userId.toString(), 10);
     if (status) filters.status = status === 'true';
 
-    console.log("🚀 ~ filters:", filters)
 
     const list: InvoiceHeader[] = await prisma.invoiceHeader.findMany({
       where: filters,
@@ -30,7 +29,12 @@ export const get = async (
       include: {
         branch: true,
         User: true,
-        InvoiceDetail: true,
+        InvoiceDetail: {
+          include: {
+            service: true,
+            product: true,
+          },
+        },
       },
     });
     response.json(list);
