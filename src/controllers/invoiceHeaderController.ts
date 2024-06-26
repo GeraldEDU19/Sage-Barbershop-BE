@@ -24,10 +24,14 @@ export const get = async (
     const list: InvoiceHeader[] = await prisma.invoiceHeader.findMany({
       where: filters,
       orderBy: {
-        id: "asc",
+        date: "desc",
       },
       include: {
-        branch: true,
+        branch: {
+          include:{
+            employee:true,
+          }
+        },
         User: true,
         InvoiceDetail: {
           include: {
@@ -54,7 +58,11 @@ export const getById = async (
     const objInvoiceHeader = await prisma.invoiceHeader.findUnique({
       where: { id: idInvoiceHeader },
       include: {
-        branch: true,
+        branch: {
+          include:{
+            employee:true,
+          }
+        },
         User: true,
         InvoiceDetail: true,
       },
@@ -82,7 +90,6 @@ export const create = async (
         User: {
           connect: { id: parseInt(body.userId, 10) },
         },
-        tax: parseFloat(body.tax),
         total: parseFloat(body.total),
         status: body.status === 'true', // Convertir a booleano
         createdAt: new Date(),
@@ -136,7 +143,6 @@ export const update = async (
         User: {
           connect: { id: parseInt(body.userId, 10) },
         },
-        tax: parseFloat(body.tax),
         total: parseFloat(body.total),
         status: body.status === 'true', // Convertir a booleano
         updatedAt: new Date(),

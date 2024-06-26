@@ -21,7 +21,7 @@ export const get = async (
     const list: Reservation[] = await prisma.reservation.findMany({
       where: filters,
       orderBy: {
-        id: "asc",
+        date: "desc",
       },
       include: {
         status: true,
@@ -46,6 +46,29 @@ export const getById = async (
     const idReservation = parseInt(request.params.id);
     const objReservation = await prisma.reservation.findFirst({
       where: { id: idReservation },
+      include: {
+        status: true,
+        branch: true,
+        service: true,
+        User: true,
+      },
+    });
+    response.json(objReservation);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Listado por sucursal
+export const getByBranch = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const idBranch = parseInt(request.params.id);
+    const objReservation = await prisma.reservation.findMany({
+      where: { branchId: idBranch },
       include: {
         status: true,
         branch: true,
