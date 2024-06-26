@@ -1,17 +1,23 @@
 export const categories = [
   {
-    description: "Hair Care",
+    description: "Shampoo",
   },
   {
-    description: "Skin Care",
+    description: "Conditioner",
   },
   {
-    description: "Beard Care",
+    description: "Hair gel",
   },
   {
-    description: "Shaving",
+    description: "Leave-in treatments",
   },
   {
-    description: "Accessories",
+    description: "Clipper",
+  },
+  {
+    description: "Razor",
+  },
+  {
+    description: "Shears",
   },
 ];
