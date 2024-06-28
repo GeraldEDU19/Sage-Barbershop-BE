@@ -10,12 +10,12 @@ export const get = async (
   next: NextFunction
 ) => {
 
-  const { id } = request.query;
+  const { id, branchId } = request.query;
 
     const filters: any = {};
 
     if (id) filters.id = parseInt(id.toString(), 10);
-
+    if (branchId) filters.branchId = parseInt(branchId.toString(), 10);
 
   try {
     const list: Reservation[] = await prisma.reservation.findMany({
