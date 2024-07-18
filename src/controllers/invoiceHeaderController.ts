@@ -29,7 +29,7 @@ export const get = async (
       include: {
         branch: {
           include:{
-            employee:true,
+            user:true,
           }
         },
         User: true,
@@ -60,7 +60,7 @@ export const getById = async (
       include: {
         branch: {
           include:{
-            employee:true,
+            user:true,
           }
         },
         User: true,

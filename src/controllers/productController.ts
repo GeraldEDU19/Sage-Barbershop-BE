@@ -68,7 +68,7 @@ export const create = async (
         image: body.image,
         quantity: parseInt(body.quantity, 10),
         category: {
-          connect: { id: parseInt(body.categoryId, 10) },
+          connect: { id: parseInt(body.category, 10) },
         },
       },
     });
