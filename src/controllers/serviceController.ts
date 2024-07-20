@@ -22,7 +22,7 @@ export const get = async (
         id: "asc",
       },
       include: {
-        employee: true,
+        user: true,
       },
     });
     response.json(list);
@@ -42,7 +42,7 @@ export const getById = async (
     const objService = await prisma.service.findFirst({
       where: { id: idService },
       include: {
-        employee: true,
+        user: true,
       },
     });
     response.json(objService);
@@ -66,7 +66,7 @@ export const create = async (
         price: parseFloat(body.price),
         duration: parseInt(body.duration, 10),
         image: body.image || 'image-not-found.jpg',
-        employee: {
+        user: {
           connect: { id: parseInt(body.userId, 10) },
         },
       },
@@ -91,7 +91,7 @@ export const update = async (
     const oldService = await prisma.service.findUnique({
       where: { id: idService },
       include: {
-        employee: true,
+        user: true,
       },
     });
 
@@ -109,7 +109,7 @@ export const update = async (
         price: parseFloat(body.price),
         duration: parseInt(body.duration, 10),
         image: body.image || 'image-not-found.jpg',
-        employee: {
+        user: {
           connect: { id: parseInt(body.userId, 10) },
         },
       },

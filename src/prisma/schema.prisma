@@ -45,7 +45,7 @@ model Branch {
   phone       String
   address     String
   email       String          @unique
-  employee    User[]
+  user    User[]
   Schedule    Schedule[]
   Reservation Reservation[]
   Invoice     InvoiceHeader[]
@@ -60,7 +60,7 @@ model Service {
   price         Decimal         @db.Decimal(10, 2)
   duration      Int
   image         String?         @default("https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/832px-No-Image-Placeholder.svg.png")
-  employee      User            @relation(fields: [userId], references: [id])
+  user      User            @relation(fields: [userId], references: [id])
   userId        Int
   Reservation   Reservation[]
   InvoiceDetail InvoiceDetail[]

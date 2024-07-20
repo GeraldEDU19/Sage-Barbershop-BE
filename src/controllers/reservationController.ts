@@ -60,15 +60,24 @@ export const getById = async (
 };
 
 // Listado por sucursal
-export const getByBranch = async (
+export const getByManager = async (
   request: Request,
   response: Response,
   next: NextFunction
 ) => {
   try {
-    const idBranch = parseInt(request.params.id);
+    const idManager = parseInt(request.params.id);
+
+    const objManager = await prisma.user.findUnique({
+      where: { id: idManager },
+    });
+
+    if (!objManager || objManager.branchId === null || objManager.branchId === undefined) {
+      return response.status(400).json({ error: "Branch ID not found for user" });
+    }
+
     const objReservation = await prisma.reservation.findMany({
-      where: { branchId: idBranch },
+      where: { branchId: objManager.branchId },
       include: {
         status: true,
         branch: true,
@@ -76,12 +85,12 @@ export const getByBranch = async (
         User: true,
       },
     });
+
     response.json(objReservation);
   } catch (error) {
     next(error);
   }
 };
-
 // Crear
 export const create = async (
   request: Request,
