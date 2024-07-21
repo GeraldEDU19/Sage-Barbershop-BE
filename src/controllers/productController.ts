@@ -1,6 +1,11 @@
 import { PrismaClient, Product } from "@prisma/client";
 import { Request, Response, NextFunction } from "express";
 
+import multer from 'multer';
+import imageService from '../services/imageService';
+
+
+
 const prisma = new PrismaClient();
 
 // Obtener listado
@@ -36,16 +41,20 @@ export const get = async (
 export const getById = async (
   request: Request,
   response: Response,
-  next: NextFunction
+  next: NextFunction    
 ) => {
   try {
-    const idProduct = parseInt(request.params.id);
+    let id = request.query.id
+    if(!id) throw new Error("undefined ID")
+    const idProduct = parseInt(id.toString());
     const objProduct = await prisma.product.findFirst({
       where: { id: idProduct },
       include: {
         category: true,
       },
     });
+
+    if(request.query.image && objProduct?.image) objProduct.image = (await imageService.getImageAsBase64(objProduct.image, parseInt(request.query.image.toString()))).toString()
     response.json(objProduct);
   } catch (error) {
     next(error);
@@ -59,19 +68,43 @@ export const create = async (
   next: NextFunction
 ) => {
   try {
+
     const body = request.body;
-    const newProduct = await prisma.product.create({
-      data: {
-        name: body.name,
-        description: body.description,
-        price: parseFloat(body.price),
-        image: body.image,
-        quantity: parseInt(body.quantity, 10),
-        category: {
-          connect: { id: parseInt(body.category, 10) },
-        },
+
+    let data:any = { 
+      name: body.name,
+      description: body.description,
+      price: parseFloat(body.price),
+      
+      quantity: parseInt(body.quantity, 10),
+      category: {
+        connect: { id: parseInt(body.category, 10) },
       },
+    }
+
+    if (request.file) {
+
+      const maxId = await prisma.product.findMany({
+        select: { id: true },
+        orderBy: { id: 'desc' },
+        take: 1,
+      });
+      const nextId = maxId.length ? maxId[0].id + 1 : 1;
+
+      const imageName = `product_${nextId}`;
+
+      await imageService.uploadImage(request.file, imageName);
+
+      data.image = imageName
+    }
+
+
+
+    const newProduct = await prisma.product.create({
+      data
     });
+
+
     response.json(newProduct);
   } catch (error) {
     next(error);
@@ -86,9 +119,13 @@ export const update = async (
 ) => {
   try {
     const body = request.body;
-    const idProduct = parseInt(request.params.id);
+    const idProduct = parseInt(body.id);
 
-    // Obtener producto viejo
+    delete body.id
+
+    if(body.categoryId) body.categoryId = parseInt(body.categoryId)
+    //We have to parsed all strings to ints
+
     const oldProduct = await prisma.product.findUnique({
       where: { id: idProduct },
       include: {
@@ -100,21 +137,23 @@ export const update = async (
       return response.status(404).json({ message: "Product not found" });
     }
 
+    let imageName = oldProduct.image;
+
+    if (request.file) {
+      const newImageName = `product_${idProduct}`;
+
+      await imageService.uploadImage(request.file, newImageName);
+
+      imageName = newImageName;
+    }
+
     const updatedProduct = await prisma.product.update({
       where: {
         id: idProduct,
       },
-      data: {
-        name: body.name,
-        description: body.description,
-        price: parseFloat(body.price),
-        image: body.image,
-        quantity: parseInt(body.quantity, 10),
-        category: {
-          connect: { id: parseInt(body.categoryId, 10) },
-        },
-      },
+      data: body
     });
+
     response.json(updatedProduct);
   } catch (error) {
     next(error);

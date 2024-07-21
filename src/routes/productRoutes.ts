@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import * as productController from '../controllers/productController';
+import multer from 'multer';
 
 const router = Router();
 
 router.get('/', productController.get);
-router.post('/', productController.create);
-router.get('/:id', productController.getById);
-router.put('/:id', productController.update);
+router.post('/', multer().single('file'), productController.create);
+router.put('/', multer().single('file'), productController.update);
+router.get('/getById', productController.getById);
+
 
 export default router;
