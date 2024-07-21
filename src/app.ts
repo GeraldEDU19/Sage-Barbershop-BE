@@ -15,7 +15,14 @@ import invoiceHeaderRoutes from './routes/invoiceHeaderRoutes';
 import prisma from './prisma/client';
 
 const app = express();
-app.use(cors());
+
+// Configuración de CORS para permitir cualquier origen
+app.use(cors({
+  origin: '*',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
 // Middleware para parsear JSON
 app.use(express.json());
 
