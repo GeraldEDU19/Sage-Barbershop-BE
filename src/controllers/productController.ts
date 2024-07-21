@@ -15,13 +15,13 @@ export const get = async (
   next: NextFunction
 ) => {
   try {
-    const { id } = request.query;
+    const { id, image } = request.query;
 
     const filters: any = {};
 
     if (id) filters.id = parseInt(id.toString(), 10);
 
-
+    // Obtener productos
     const list: Product[] = await prisma.product.findMany({
       where: filters,
       orderBy: {
@@ -31,6 +31,19 @@ export const get = async (
         category: true,
       },
     });
+
+    // Convertir las imágenes a base64 si están disponibles
+    for (const product of list) {
+      if (product.image && image) {
+        try {
+          const imageSize = parseInt(image.toString());
+          product.image = await imageService.getImageAsBase64(product.image, imageSize);
+        } catch (error) {
+          next(error)
+        }
+      }
+    }
+
     response.json(list);
   } catch (error) {
     next(error);
