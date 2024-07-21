@@ -29,7 +29,6 @@ export const get = async (
       include: {
         branch: {
           include:{
-            user:true,
           }
         },
         User: true,
@@ -59,9 +58,6 @@ export const getById = async (
       where: { id: idInvoiceHeader },
       include: {
         branch: {
-          include:{
-            user:true,
-          }
         },
         User: true,
         InvoiceDetail: true,

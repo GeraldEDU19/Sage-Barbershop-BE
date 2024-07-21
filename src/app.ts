@@ -1,5 +1,6 @@
 import express from 'express';
 const cors = require('cors');
+import imageRoutes from './routes/imageRoutes'
 import userRoutes from './routes/userRoutes';
 import oauthRoutes from './routes/oauthRoutes';
 import branchRoutes from './routes/branchRoutes';
@@ -22,6 +23,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Rutas
+app.use('/api/image', imageRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/oauth', oauthRoutes);
 app.use('/api/branch', branchRoutes);
@@ -37,7 +39,7 @@ app.use('/api/invoice-header', invoiceHeaderRoutes);
 // Middleware de manejo de errores
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack);
-  res.status(500).send('Something broke!');
+  res.status(500).send(err.message);
 });
 
 // Cierre del cliente Prisma cuando la aplicación se apaga
