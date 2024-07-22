@@ -133,7 +133,7 @@ export const update = async (
   try {
     const body = request.body;
     const idProduct = parseInt(body.id);
-
+    body.quantity = parseInt(body.quantity);
     delete body.id
 
     if(body.categoryId) body.categoryId = parseInt(body.categoryId)
