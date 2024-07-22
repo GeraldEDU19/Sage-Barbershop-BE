@@ -62,6 +62,33 @@ export const getById = async (
   }
 };
 
+export const getEmployeesWithoutBranch = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const employees: User[] = await prisma.user.findMany({
+      where: {
+        role: 'EMPLOYEE',
+        branchId: null,
+      },
+      orderBy: {
+        id: 'asc',
+      },
+      include: {
+        Service: true,
+        Branch: true,
+        Reservation: true,
+        Invoice: true,
+      },
+    });
+    response.json(employees);
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Obtener por Email
 export const getByEmail = async (
   request: Request,
