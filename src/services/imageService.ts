@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 
 class ImageService {
-  private readonly uploadDir = 'uploads';
+  private readonly uploadDir = 'src/assets/images';
 
   constructor() {
     if (!fs.existsSync(this.uploadDir)) {
@@ -16,7 +16,7 @@ class ImageService {
 
 
     await sharp(file.buffer)
-      .resize(1024, 1024, { fit: 'cover' })
+      .resize(512, 512, { fit: 'cover' })
       .toFile(imagePath);
   }
 

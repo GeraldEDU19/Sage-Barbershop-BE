@@ -1,4 +1,4 @@
-import { PrismaClient, User } from "@prisma/client";
+import { PrismaClient, Role, User } from "@prisma/client";
 import { Request, Response, NextFunction } from "express";
 import BcryptService from "../services/bcryptService";
 
@@ -23,6 +23,33 @@ export const get = async (
 
     const list: User[] = await prisma.user.findMany({
       where: filters,
+      orderBy: {
+        id: "asc",
+      },
+      include: {
+        Service: true,
+        Branch: true,
+        Reservation: true,
+        Invoice: true,
+      },
+    });
+    response.json(list);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Obtener listado
+export const getEmployees = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const list: User[] = await prisma.user.findMany({
+      where: {
+        role: Role.EMPLOYEE
+      },
       orderBy: {
         id: "asc",
       },
