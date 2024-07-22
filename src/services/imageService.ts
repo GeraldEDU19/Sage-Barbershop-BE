@@ -14,7 +14,17 @@ class ImageService {
   async uploadImage(file: Express.Multer.File, imageName: string): Promise<void> {
     const imagePath = path.join(this.uploadDir, `${imageName}.jpg`);
 
+    // Verificar si el archivo existe y eliminarlo
+    try {
+      if (fs.existsSync(imagePath)) {
+        await fs.promises.rm(imagePath, { force: true });
+      }
+    } catch (error:any) {
+      console.error(`Error deleting file: ${imagePath}`, error);
+      throw new Error(`Failed to delete existing image: ${error.message}`);
+    }
 
+    // Procesar y guardar la nueva imagen
     await sharp(file.buffer)
       .resize(512, 512, { fit: 'cover' })
       .toFile(imagePath);
