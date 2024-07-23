@@ -1,5 +1,6 @@
 import { PrismaClient, Service } from "@prisma/client";
 import { Request, Response, NextFunction } from "express";
+import imageService from "../services/imageService";
 
 const prisma = new PrismaClient();
 
@@ -22,7 +23,7 @@ export const get = async (
         id: "asc",
       },
       include: {
-        employee: true,
+        user: true,
       },
     });
     response.json(list);
@@ -38,20 +39,29 @@ export const getById = async (
   next: NextFunction
 ) => {
   try {
-    const idService = parseInt(request.params.id);
-    const objService = await prisma.service.findFirst({
-      where: { id: idService },
+    let id = request.query.id;
+    if (!id) throw new Error("undefined ID");
+    const idservice = parseInt(id.toString());
+    const objservice = await prisma.service.findFirst({
+      where: { id: idservice },
       include: {
-        employee: true,
+        user: true,
       },
     });
-    response.json(objService);
+
+    if (request.query.image && objservice?.image)
+      objservice.image = (
+        await imageService.getImageAsBase64(
+          objservice.image,
+          parseInt(request.query.image.toString())
+        )
+      ).toString();
+    response.json(objservice);
   } catch (error) {
     next(error);
   }
 };
 
-// Crear
 export const create = async (
   request: Request,
   response: Response,
@@ -59,18 +69,36 @@ export const create = async (
 ) => {
   try {
     const body = request.body;
-    const newService = await prisma.service.create({
-      data: {
-        name: body.name,
-        description: body.description,
-        price: parseFloat(body.price),
-        duration: parseInt(body.duration, 10),
-        image: body.image || 'image-not-found.jpg',
-        employee: {
-          connect: { id: parseInt(body.userId, 10) },
-        },
+
+    let data: any = {
+      name: body.name,
+      description: body.description,
+      price: parseFloat(body.price),
+      duration: parseInt(body.duration, 10),
+      user: {
+        connect: { id: parseInt(body.user, 10) },
       },
+    };
+
+    if (request.file) {
+      const maxId = await prisma.service.findMany({
+        select: { id: true },
+        orderBy: { id: "desc" },
+        take: 1,
+      });
+      const nextId = maxId.length ? maxId[0].id + 1 : 1;
+
+      const imageName = `service_${nextId}`;
+
+      await imageService.uploadImage(request.file, imageName);
+
+      data.image = imageName;
+    }
+
+    const newService = await prisma.service.create({
+      data,
     });
+
     response.json(newService);
   } catch (error) {
     next(error);
@@ -85,13 +113,17 @@ export const update = async (
 ) => {
   try {
     const body = request.body;
-    const idService = parseInt(request.params.id);
+    const idService = parseInt(body.id);
+    body.duration = parseInt(body.duration);
+    delete body.id;
 
-    // Obtener servicio viejo
+    if (body.userId) body.userId = parseInt(body.userId);
+    //We have to parsed all strings to ints
+
     const oldService = await prisma.service.findUnique({
       where: { id: idService },
       include: {
-        employee: true,
+        user: true,
       },
     });
 
@@ -99,21 +131,33 @@ export const update = async (
       return response.status(404).json({ message: "Service not found" });
     }
 
+    let imageName = oldService.image;
+
+    if (request.file) {
+      const newImageName = `service_${idService}`;
+
+      await imageService.uploadImage(request.file, newImageName);
+
+      imageName = newImageName;
+    }
+
+    let data: any = {
+      name: body.name,
+      description: body.description,
+      price: parseFloat(body.price),
+      duration: parseInt(body.duration, 10),
+      user: {
+        connect: { id: parseInt(body.user, 10) },
+      },
+    };
+
     const updatedService = await prisma.service.update({
       where: {
         id: idService,
       },
-      data: {
-        name: body.name,
-        description: body.description,
-        price: parseFloat(body.price),
-        duration: parseInt(body.duration, 10),
-        image: body.image || 'image-not-found.jpg',
-        employee: {
-          connect: { id: parseInt(body.userId, 10) },
-        },
-      },
+      data: data,
     });
+
     response.json(updatedService);
   } catch (error) {
     next(error);
