@@ -28,9 +28,17 @@ export const getById = async (
   next: NextFunction
 ) => {
   try {
-    const idBranch = parseInt(request.params.id);
+    let id = request.query.id
+    if(!id) throw new Error("undefined ID")
+    const idBranch = parseInt(id.toString());
     const objBranch = await prisma.branch.findFirst({
       where: { id: idBranch },
+      include:{
+        user: true,
+        Schedule: true,
+        Reservation: true,
+        Invoice: true,
+      }
     });
     response.json(objBranch);
   } catch (error) {
@@ -39,41 +47,38 @@ export const getById = async (
 };
 
 // Crear
-export const create = async (
-  request: Request,
-  response: Response,
-  next: NextFunction
-) => {
+export const create = async (request: Request, response: Response, next: NextFunction) => {
   try {
-    const body = request.body;
+    const { name, description, phone, address, email, users } = request.body;
+
     const newBranch = await prisma.branch.create({
       data: {
-        name: body.name,
-        description: body.description,
-        phone: body.phone,
-        address: body.address,
-        email: body.email,
+        name,
+        description,
+        phone,
+        address,
+        email,
+        user: {
+          connect: users.map((userId: string) => ({ id: parseInt(userId) })),
+        },
       },
     });
+
     response.json(newBranch);
   } catch (error) {
     next(error);
   }
 };
 
-// Actualizar una sucursal
-export const update = async (
-  request: Request,
-  response: Response,
-  next: NextFunction
-) => {
+// Actualización de una `Branch` con usuarios
+export const update = async (request: Request, response: Response, next: NextFunction) => {
   try {
-    const body = request.body;
-    const idBranch = parseInt(request.params.id);
+    const { id, name, description, phone, address, email, users } = request.body;
+    const idBranch = parseInt(id);
 
-    // Obtener sucursal vieja
     const oldBranch = await prisma.branch.findUnique({
       where: { id: idBranch },
+      include: { user: true },
     });
 
     if (!oldBranch) {
@@ -81,17 +86,20 @@ export const update = async (
     }
 
     const updatedBranch = await prisma.branch.update({
-      where: {
-        id: idBranch,
-      },
+      where: { id: idBranch },
       data: {
-        name: body.name,
-        description: body.description,
-        phone: body.phone,
-        address: body.address,
-        email: body.email,
+        name,
+        description,
+        phone,
+        address,
+        email,
+        user: {
+          set: [], // Limpiar las conexiones existentes
+          connect: users.map((userId: string) => ({ id: parseInt(userId) })),
+        },
       },
     });
+
     response.json(updatedBranch);
   } catch (error) {
     next(error);
