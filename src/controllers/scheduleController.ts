@@ -24,6 +24,29 @@ export const get = async (
   }
 };
 
+
+export const getByBranchId = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    let branchId: number = 0
+    if(request.query.branchId) branchId = parseInt(request.query.branchId.toString())
+    const schedules: Schedule[] = await prisma.schedule.findMany({
+      orderBy: {
+        id: "asc",
+      },
+      where: { branchId: branchId },
+      include: {
+        branch: true,
+      },
+    });
+    response.json(schedules);
+  } catch (error) {
+    next(error);
+  }
+};
 // Obtener por Id
 export const getById = async (
   request: Request,
@@ -58,12 +81,31 @@ export const create = async (
   try {
     const body = request.body;
 
-    const status: boolean = body.status === 'true';
+    const status: boolean = body.status === "true";
+    const startDate = new Date(body.startDate);
+    const endDate = new Date(body.endDate);
+
+    // Verificar si existe un horario en el rango de fechas
+    const conflictingSchedule = await prisma.schedule.findFirst({
+      where: {
+        OR: [
+          {
+            startDate: { lte: endDate },
+            endDate: { gte: startDate },
+          },
+        ],
+        branchId: parseInt(body.branchId, 10),
+      },
+    });
+
+    if (conflictingSchedule) {
+      return response.status(400).json({ error: "There is already a schedule in the specified date range." });
+    }
 
     const newSchedule = await prisma.schedule.create({
       data: {
-        startDate: new Date(body.startDate),
-        endDate: new Date(body.endDate),
+        startDate: startDate,
+        endDate: endDate,
         status: status,
         branch: {
           connect: { id: parseInt(body.branchId, 10) },
