@@ -160,11 +160,22 @@ export const update = async (
       imageName = newImageName;
     }
 
+    let data:any = { 
+      name: body.name,
+      description: body.description,
+      price: parseFloat(body.price),
+      
+      quantity: parseInt(body.quantity, 10),
+      category: {
+        connect: { id: parseInt(body.category, 10) },
+      },
+    }
+
     const updatedProduct = await prisma.product.update({
       where: {
         id: idProduct,
       },
-      data: body
+      data: data
     });
 
     response.json(updatedProduct);
