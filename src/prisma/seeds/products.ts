@@ -8,7 +8,7 @@ export const products = [
     categoryId: 1,
     price: new Decimal(15.99),
     image:
-      "https://cdn.sanity.io/images/4nopozul/tresemme-staging-us/ff3f77abfc3bfd5c85395ebf13e146e0d6352b0b-600x600.jpg?w=450&h=450&fit=fill&auto=format&q=80&bg=fff",
+      "product_1",
     quantity: 50,
   },
   {
@@ -18,7 +18,7 @@ export const products = [
     categoryId: 2,
     price: new Decimal(12.99),
     image:
-      "https://cdn.sanity.io/images/4nopozul/tresemme-staging-us/c7309c9683b046f5644e70ef12397472a22ff665-1200x1200.jpg?w=450&h=450&fit=fill&auto=format&q=80&bg=fff",
+      "product_2",
     quantity: 100,
   },
   {
@@ -28,7 +28,7 @@ export const products = [
     categoryId: 3,
     price: new Decimal(9.99),
     image:
-      "https://cdn.sanity.io/images/4nopozul/tresemme-staging-us/e7959c57f282052639f6cae20a0e84d31f60e5c6-2880x2880.png?w=450&h=450&fit=fill&auto=format&q=80&bg=fff",
+      "product_3",
     quantity: 30,
   },
   {
@@ -38,7 +38,7 @@ export const products = [
     categoryId: 4,
     price: new Decimal(7.99),
     image:
-      "https://cdn.sanity.io/images/4nopozul/tresemme-staging-us/10553cc05c0742fe43a2129e076fe4bf2bbcfa63-5000x5000.jpg?w=450&h=450&fit=fill&auto=format&q=80&bg=fff",
+      "product_4",
     quantity: 20,
   },
   {
@@ -48,7 +48,7 @@ export const products = [
     categoryId: 5,
     price: new Decimal(149.99),
     image:
-      "https://www.barberdepots.com/wp-content/uploads/2024/04/wahl-5-star-black-cordless-magic-clip-3026432.webp",
+      "product_5",
     quantity: 75,
   },
   {
@@ -58,7 +58,7 @@ export const products = [
     categoryId: 6,
     price: new Decimal(4.99),
     image:
-      "https://www.barberdepots.com/wp-content/uploads/2024/06/starmaxx-single-edge-razor-blade-smp200-100.png",
+      "product_6",
     quantity: 64,
   },
   {
@@ -68,7 +68,7 @@ export const products = [
     categoryId: 7,
     price: new Decimal(59.99),
     image:
-      "https://www.barberdepots.com/wp-content/uploads/2022/11/pebco-barber-shear-7-pt-1076.jpg",
+      "product_7",
     quantity: 51,
   },
 ];
