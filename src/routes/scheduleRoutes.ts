@@ -1,12 +1,13 @@
-import { Router } from 'express';
-import * as scheduleController from '../controllers/scheduleController';
+import { Router } from "express";
+import * as scheduleController from "../controllers/scheduleController";
+import multer from "multer";
 
 const router = Router();
 
-router.get('/', scheduleController.get);
-router.get('/getByBranch', scheduleController.getByBranchId);
-router.post('/', scheduleController.create);
-router.get('/:id', scheduleController.getById);
-router.put('/:id', scheduleController.update);
+router.get("/", scheduleController.get);
+router.get("/getByBranch", scheduleController.getByBranchId);
+router.post("/", multer().any(), scheduleController.create);
+router.put("/", multer().any(), scheduleController.update);
+router.get("/getById", scheduleController.getById);
 
 export default router;
