@@ -6,7 +6,7 @@ export const services = [
     duration: 30,
     userId: 2,
     image:
-      "https://rafaelsbarbershop.com/storage/photos/1/posts/mens-haircuts/mens-haircuts-1.jpg",
+      "service_1",
   },
   {
     name: "Shave",
@@ -15,7 +15,7 @@ export const services = [
     duration: 20,
     userId: 3,
     image:
-      "https://images.ctfassets.net/48b1x1jfyugu/6S9loJGrPIA8WmETl6kZrw/af1f25862a5ca81a4ad90b2096d201db/science-behind-shave-gels-and-foams-alp-thumbnail_2x.png",
+      "service_2",
   },
   {
     name: "Beard Trim",
@@ -24,7 +24,7 @@ export const services = [
     duration: 25,
     userId: 3,
     image:
-      "https://wellgroomedgentleman.com/wp-content/uploads/The-Art-of-Beard-Styles-Trimmed.jpg",
+      "service_3",
   },
   {
     name: "Hair Color",
@@ -33,7 +33,7 @@ export const services = [
     duration: 60,
     userId: 4,
     image:
-      "https://publish.purewow.net/wp-content/uploads/sites/2/2023/01/different-types-of-hair-dye.jpg?resize=720%2C780",
+      "service_4",
   },
   {
     name: "Facial",
@@ -42,6 +42,6 @@ export const services = [
     duration: 40,
     userId: 2,
     image:
-      "https://pellemedicalspa.com/wp-content/uploads/2023/06/pelle-medical-spa-monthly-facials-manchester-nh-featured-image.webp",
+      "service_5",
   },
 ];

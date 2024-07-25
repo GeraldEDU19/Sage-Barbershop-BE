@@ -133,7 +133,7 @@ export const update = async (
   try {
     const body = request.body;
     const idProduct = parseInt(body.id);
-    // body.quantity = parseInt(body.quantity);
+    body.quantity = parseInt(body.quantity);
     delete body.id
 
     if(body.categoryId) body.categoryId = parseInt(body.categoryId)
@@ -144,6 +144,7 @@ export const update = async (
       include: {
         category: true,
       },
+      
     });
 
     if (!oldProduct) {
@@ -161,14 +162,14 @@ export const update = async (
     }
 
     let data:any = { 
-      // name: body.name,
-      // description: body.description,
-      // price: parseFloat(body.price),
+      name: body.name,
+      description: body.description,
+      price: parseFloat(body.price),
       
-      // quantity: parseInt(body.quantity, 10),
-      // category: {
-      //   connect: { id: parseInt(body.category, 10) },
-      // },
+      quantity: parseInt(body.quantity, 10),
+      category: {
+        connect: { id: parseInt(body.category, 10) },
+      },
     }
 
     const updatedProduct = await prisma.product.update({
