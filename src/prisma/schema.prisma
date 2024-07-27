@@ -1,0 +1,166 @@
+// Este es tu archivo de esquema de Prisma,
+// aprende más sobre él en los docs: https://pris.ly/d/prisma-schema
+
+// ¿Buscas formas de acelerar tus consultas o escalar fácilmente con tus funciones sin servidor o edge?
+// Prueba Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int             @id @default(autoincrement())
+  name        String
+  surname     String
+  phone       String
+  email       String          @unique
+  address     String
+  birthdate   DateTime
+  password    String
+  role        Role            @default(CLIENT)
+  Service     Service[]
+  Branch      Branch?         @relation(fields: [branchId], references: [id])
+  branchId    Int?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @default(now()) @updatedAt
+  Reservation Reservation[]
+  Invoice     InvoiceHeader[]
+}
+
+enum Role {
+  CLIENT
+  EMPLOYEE
+  ADMIN
+}
+
+model Branch {
+  id          Int             @id @default(autoincrement())
+  name        String
+  description String          @db.VarChar(524)
+  phone       String
+  address     String
+  email       String          @unique
+  user        User[]
+  Schedule    Schedule[]
+  Reservation Reservation[]
+  Invoice     InvoiceHeader[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @default(now()) @updatedAt
+}
+
+model Service {
+  id            Int             @id @default(autoincrement())
+  name          String
+  description   String          @db.VarChar(524)
+  price         Decimal         @db.Decimal(10, 2)
+  duration      Int
+  image         String?         @default("image-not-found.jpg")
+  user          User            @relation(fields: [userId], references: [id])
+  userId        Int
+  Reservation   Reservation[]
+  InvoiceDetail InvoiceDetail[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now()) @updatedAt
+}
+
+model Product {
+  id            Int             @id @default(autoincrement())
+  name          String
+  description   String          @db.VarChar(524)
+  category      Category        @relation(fields: [categoryId], references: [id])
+  categoryId    Int
+  price         Decimal         @db.Decimal(10, 2)
+  image         String?         @default("image-not-found.jpg")
+  quantity      Int
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now()) @updatedAt
+  InvoiceDetail InvoiceDetail[]
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  description String    @db.VarChar(524)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+  Product     Product[]
+}
+
+model Schedule {
+  id        Int      @id @default(autoincrement())
+  startDate DateTime
+  endDate   DateTime
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  branchId  Int
+  status    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model Reservation {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  answer1   String
+  answer2   String
+  answer3   String
+  status    Status   @relation(fields: [statusId], references: [id])
+  statusId  Int
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  branchId  Int
+  service   Service? @relation(fields: [serviceId], references: [id])
+  serviceId Int?
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model Status {
+  // PENDING - YELLOW #FFC107
+  // CONFIRMED - GREEN #4CAF50
+  // REPROGRAMMED - ORANGE #FF9800
+  // COMPLETED - BLUE #2196F3
+  // CANCELED - RED #F44336
+  // NO_SHOW - GRAY #9E9E9E
+  id          Int           @id @default(autoincrement())
+  description String        @db.VarChar(524)
+  color       String        @db.VarChar(7)
+  Reservation Reservation[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now()) @updatedAt
+}
+
+model InvoiceHeader {
+  id            Int             @id @default(autoincrement())
+  date          DateTime
+  branch        Branch          @relation(fields: [branchId], references: [id])
+  branchId      Int
+  User          User            @relation(fields: [userId], references: [id])
+  userId        Int
+  total         Decimal         @db.Decimal(10, 2)
+  status        Boolean         @default(false)
+  InvoiceDetail InvoiceDetail[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now()) @updatedAt
+}
+
+model InvoiceDetail {
+  sequence        Int
+  invoiceHeader   InvoiceHeader @relation(fields: [invoiceHeaderId], references: [id])
+  invoiceHeaderId Int
+  service         Service?      @relation(fields: [serviceId], references: [id])
+  serviceId       Int?
+  product         Product?      @relation(fields: [productId], references: [id])
+  productId       Int?
+  quantity        Int?
+  price           Decimal       @db.Decimal(10, 2)
+  subtotal        Decimal       @db.Decimal(10, 2)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @default(now()) @updatedAt
+
+  @@id([invoiceHeaderId, sequence]) // Clave primaria
+}
