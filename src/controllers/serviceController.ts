@@ -11,7 +11,7 @@ export const get = async (
   next: NextFunction
 ) => {
   try {
-    const { id } = request.query;
+    const { id, image } = request.query;
 
     const filters: any = {};
 
@@ -26,6 +26,19 @@ export const get = async (
         user: true,
       },
     });
+
+    for (const service of list) {
+      if (service.image && image) {
+        try {
+          const imageSize = parseInt(image.toString());
+          service.image = await imageService.getImageAsBase64(service.image, imageSize);
+        } catch (error) {
+          next(error)
+        }
+      }
+    }
+
+
     response.json(list);
   } catch (error) {
     next(error);

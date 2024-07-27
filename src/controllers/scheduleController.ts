@@ -54,7 +54,9 @@ export const getById = async (
   next: NextFunction
 ) => {
   try {
-    const idSchedule = parseInt(request.params.id);
+    let id = request.query.id
+    if(!id) throw new Error("undefined ID")
+    const idSchedule = parseInt(id.toString());
     const schedule = await prisma.schedule.findUnique({
       where: { id: idSchedule },
       include: {

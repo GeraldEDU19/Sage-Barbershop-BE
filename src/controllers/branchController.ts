@@ -51,6 +51,12 @@ export const create = async (request: Request, response: Response, next: NextFun
   try {
     const { name, description, phone, address, email, users } = request.body;
 
+    // Ensure `users` is always an array
+    const userIds = Array.isArray(users) ? users : [users];
+
+    // Convert `userIds` to an array of objects if necessary
+    const userConnections = userIds.map((userId: string) => ({ id: parseInt(userId) }));
+
     const newBranch = await prisma.branch.create({
       data: {
         name,
@@ -59,7 +65,7 @@ export const create = async (request: Request, response: Response, next: NextFun
         address,
         email,
         user: {
-          connect: users.map((userId: string) => ({ id: parseInt(userId) })),
+          connect: userConnections,
         },
       },
     });
@@ -85,6 +91,12 @@ export const update = async (request: Request, response: Response, next: NextFun
       return response.status(404).json({ message: "Branch not found" });
     }
 
+    // Ensure `users` is always an array
+    const userIds = Array.isArray(users) ? users : [users];
+
+    // Convert `userIds` to an array of objects
+    const userConnections = userIds.map((userId: string) => ({ id: parseInt(userId) }));
+
     const updatedBranch = await prisma.branch.update({
       where: { id: idBranch },
       data: {
@@ -94,8 +106,8 @@ export const update = async (request: Request, response: Response, next: NextFun
         address,
         email,
         user: {
-          set: [], // Limpiar las conexiones existentes
-          connect: users.map((userId: string) => ({ id: parseInt(userId) })),
+          set: [], // Clear existing connections
+          connect: userConnections, // Connect new users
         },
       },
     });
