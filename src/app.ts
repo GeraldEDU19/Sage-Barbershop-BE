@@ -1,6 +1,6 @@
 import express from 'express';
 const cors = require('cors');
-import imageRoutes from './routes/imageRoutes'
+import imageRoutes from './routes/imageRoutes';
 import userRoutes from './routes/userRoutes';
 import oauthRoutes from './routes/oauthRoutes';
 import branchRoutes from './routes/branchRoutes';
@@ -28,6 +28,11 @@ app.use(express.json());
 
 // Middleware para parsear form-data
 app.use(express.urlencoded({ extended: false }));
+
+// Ruta de salud
+app.get('/', (req, res) => {
+  res.send('Backend is running correctly');
+});
 
 // Rutas
 app.use('/api/image', imageRoutes);
