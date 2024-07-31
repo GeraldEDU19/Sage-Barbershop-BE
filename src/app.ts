@@ -1,6 +1,6 @@
 import express from 'express';
 const cors = require('cors');
-import imageRoutes from './routes/imageRoutes'
+import imageRoutes from './routes/imageRoutes';
 import userRoutes from './routes/userRoutes';
 import oauthRoutes from './routes/oauthRoutes';
 import branchRoutes from './routes/branchRoutes';
@@ -13,6 +13,7 @@ import categoryRoutes from './routes/categoryRoutes';
 import fileRoutes from './routes/fileRoutes';
 import invoiceHeaderRoutes from './routes/invoiceHeaderRoutes';
 import prisma from './prisma/client';
+import { SchedulerService } from './services/schedulerService';
 
 const app = express();
 
@@ -55,4 +56,8 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
+// Inicializar el SchedulerService
+const scheduler = new SchedulerService();
+
+// Exportar la aplicación
 export default app;
