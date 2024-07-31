@@ -30,6 +30,11 @@ app.use(express.json());
 // Middleware para parsear form-data
 app.use(express.urlencoded({ extended: false }));
 
+// Ruta de salud
+app.get('/', (req, res) => {
+  res.send('Backend is running correctly');
+});
+
 // Rutas
 app.use('/api/image', imageRoutes);
 app.use('/api/user', userRoutes);
