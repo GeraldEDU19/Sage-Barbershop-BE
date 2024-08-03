@@ -37,7 +37,7 @@ export class SchedulerService {
 
   private scheduleTasks() {
     // Programar la tarea para que se ejecute todos los días a la medianoche
-    cron.schedule('*/10 * * * * *', () => {
+    cron.schedule('0 0 * * *', () => {
       console.log('Running scheduled task: sending reminders...');
       this.sendReminders().catch(console.error);
     });

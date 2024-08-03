@@ -116,7 +116,6 @@ export const users = [
     birthdate: new Date('1991-11-11'),
     password: '$2y$10$kOErsBbGwnXTc7Dwjjf.teWdSIlw59uSfQbTM7S1cHY0wt9PUnCsG',
     role: Role.EMPLOYEE,
-    branchId: 6,
   },
   {
     name: 'Sandra',
@@ -147,7 +146,6 @@ export const users = [
     birthdate: new Date('1994-02-14'),
     password: '$2y$10$kOErsBbGwnXTc7Dwjjf.teWdSIlw59uSfQbTM7S1cHY0wt9PUnCsG',
     role: Role.EMPLOYEE,
-    branchId: 7,
   },
   {
     name: 'Christopher',
@@ -158,7 +156,6 @@ export const users = [
     birthdate: new Date('1983-03-15'),
     password: '$2y$10$kOErsBbGwnXTc7Dwjjf.teWdSIlw59uSfQbTM7S1cHY0wt9PUnCsG',
     role: Role.EMPLOYEE,
-    branchId: 8,
   },
   {
     name: 'Patricia',
@@ -169,7 +166,6 @@ export const users = [
     birthdate: new Date('1981-04-16'),
     password: '$2y$10$kOErsBbGwnXTc7Dwjjf.teWdSIlw59uSfQbTM7S1cHY0wt9PUnCsG',
     role: Role.EMPLOYEE,
-    branchId: 9,
   },
   {
     name: 'Brian',
@@ -220,6 +216,5 @@ export const users = [
     birthdate: new Date('1980-09-21'),
     password: '$2y$10$kOErsBbGwnXTc7Dwjjf.teWdSIlw59uSfQbTM7S1cHY0wt9PUnCsG',
     role: Role.EMPLOYEE,
-    branchId: 10,
   },
 ];
