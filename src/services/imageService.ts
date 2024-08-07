@@ -14,17 +14,18 @@ class ImageService {
   async uploadImage(file: Express.Multer.File, imageName: string): Promise<void> {
     const imagePath = path.join(this.uploadDir, `${imageName}.jpg`);
 
-    // Verificar si el archivo existe y eliminarlo
     try {
       if (fs.existsSync(imagePath)) {
-        await fs.promises.rm(imagePath, { force: true });
+        await fs.promises.unlink(imagePath);
       }
     } catch (error: any) {
       console.error(`Error deleting file: ${imagePath}`, error);
+      if (error.code === 'EPERM') {
+        console.error(`Failed to delete file due to permissions issue: ${error.message}`);
+      }
       throw new Error(`Failed to delete existing image: ${error.message}`);
     }
 
-    // Procesar y guardar la nueva imagen
     try {
       await sharp(file.buffer)
         .resize(512, 512, { fit: 'cover' })
@@ -61,10 +62,8 @@ class ImageService {
   async getImageAsBase64(imageName: string, size: number): Promise<string> {
     const imageBuffer = await this.getImage(imageName, size);
 
-    // Determine the appropriate content type
     const contentType = path.extname(imageName) === '.png' ? 'image/png' : 'image/jpeg';
 
-    // Convert image buffer to base64
     return `data:${contentType};base64,${imageBuffer.toString('base64')}`;
   }
 }
