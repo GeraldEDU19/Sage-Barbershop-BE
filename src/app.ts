@@ -10,7 +10,6 @@ import scheduleRoutes from './routes/scheduleRoutes';
 import reservationRoutes from './routes/reservationRoutes';
 import statusRoutes from './routes/statusRoutes';
 import categoryRoutes from './routes/categoryRoutes';
-import fileRoutes from './routes/fileRoutes';
 import invoiceHeaderRoutes from './routes/invoiceHeaderRoutes';
 import prisma from './prisma/client';
 import { SchedulerService } from './services/schedulerService';
@@ -46,7 +45,6 @@ app.use('/api/schedule', scheduleRoutes);
 app.use('/api/reservation', reservationRoutes);
 app.use('/api/status', statusRoutes);
 app.use('/api/category', categoryRoutes);
-app.use('/api/files', fileRoutes);
 app.use('/api/invoice-header', invoiceHeaderRoutes);
 
 // Middleware de manejo de errores
