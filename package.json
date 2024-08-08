@@ -4,13 +4,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm i && npm run prisma:start && npx tsc && node dist/index.js",
+    "build": "npm install && npm run prisma:start && npx tsc && node dist/index.js",
     "dev": "nodemon --exec ts-node src/index.ts --env-file .env",
     "prisma:push": "prisma db push --schema=src/prisma/schema.prisma",
-    "prisma:migrate": "prisma db migrate --schema=src/prisma/schema.prisma",
+    "prisma:migrate": "prisma migrate deploy --schema=src/prisma/schema.prisma",
     "prisma:seed": "prisma db seed",
     "prisma:reset": "prisma migrate reset --schema=src/prisma/schema.prisma",
-    "prisma:start": "npm run prisma:reset && npm run prisma:push && npm run prisma:seed"
+    "prisma:start": "npm run prisma:migrate && npm run prisma:seed"
   },
   "keywords": [],
   "author": "",
