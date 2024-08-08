@@ -1,12 +1,16 @@
 import { Router } from "express";
 import * as reservationController from "../controllers/reservationController";
+import multer from "multer";
 
 const router = Router();
 
 router.get("/", reservationController.get);
-router.post("/", reservationController.create);
-router.get("/manager/:id", reservationController.getByManager);
-router.get("/:id", reservationController.getById);
-router.put("/:id", reservationController.update);
+router.post("/", multer().any(), reservationController.create);
+router.put("/", multer().any(), reservationController.update);
+router.get("/getByManager", reservationController.getByManager);
+router.get("/getById", reservationController.getById);
+router.get("/getByMonthYear", reservationController.getByMonthYear);
+router.get("/getByClient", reservationController.getByClient);
+
 
 export default router;
