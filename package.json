@@ -10,7 +10,7 @@
     "prisma:migrate": "prisma migrate deploy --schema=src/prisma/schema.prisma",
     "prisma:seed": "prisma db seed",
     "prisma:reset": "prisma migrate reset --schema=src/prisma/schema.prisma",
-    "prisma:start": "npm run prisma:migrate && npm run prisma:seed"
+    "prisma:start": "npm run prisma:migrate --force && npm run prisma:seed"
   },
   "keywords": [],
   "author": "",
