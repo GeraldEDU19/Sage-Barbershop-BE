@@ -4,6 +4,7 @@ import multer from 'multer';
 
 const router = Router();
 
+router.put('/status', multer().any(), invoiceHeaderController.updateStatusToTrue);
 router.get('/', invoiceHeaderController.get);
 router.post('/', multer().any() ,invoiceHeaderController.create);
 router.get('/:id', invoiceHeaderController.getById);

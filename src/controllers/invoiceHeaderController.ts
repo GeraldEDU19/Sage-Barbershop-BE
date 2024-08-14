@@ -174,7 +174,7 @@ export const update = async (
           connect: { id: parseInt(body.userId, 10) },
         },
         total: parseFloat(body.total),
-        status: body.status === 'true', // Convertir a booleano
+        status: body.status === 'true',
         updatedAt: new Date(),
       },
       include: {
@@ -265,6 +265,44 @@ export const updateDetail = async (
     });
 
     response.json(updatedInvoiceDetail);
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+// Actualizar el status de un invoice header a true
+export const updateStatusToTrue = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    console.log("🚀 ~ idInvoiceHeader: +++++++++++++++", request.body)
+    const idInvoiceHeader = parseInt(request.body.id);
+    
+
+    // Verificar si el invoiceHeader existe
+    const invoiceHeader = await prisma.invoiceHeader.findUnique({
+      where: { id: idInvoiceHeader },
+    });
+
+    if (!invoiceHeader) {
+      return response.status(404).json({ message: "InvoiceHeader not found" });
+    }
+
+    // Actualizar el status a true
+    const updatedInvoiceHeader = await prisma.invoiceHeader.update({
+      where: {
+        id: idInvoiceHeader,
+      },
+      data: {
+        status: true,
+        updatedAt: new Date(),
+      },
+    });
+
+    response.json(updatedInvoiceHeader);
   } catch (error) {
     next(error);
   }
