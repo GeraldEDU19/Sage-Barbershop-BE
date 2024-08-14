@@ -89,27 +89,48 @@ export const create = async (
   next: NextFunction
 ) => {
   try {
-    const body = request.body;
+    let { branchId, date, invoiceDetails, total, userId } = request.body;
+    console.log("🚀 ~ request.body:", request.body)
+    // Crear el nuevo InvoiceHeader
     const newInvoiceHeader = await prisma.invoiceHeader.create({
       data: {
-        date: new Date(body.date),
+        date: new Date(date),
         branch: {
-          connect: { id: parseInt(body.branchId, 10) },
+          connect: { id: parseInt(branchId, 10) },
         },
         User: {
-          connect: { id: parseInt(body.userId, 10) },
+          connect: { id: parseInt(userId, 10) },
         },
-        total: parseFloat(body.total),
-        status: body.status === 'true', // Convertir a booleano
+        total: parseFloat(total),
+        status: false, // Puedes modificar esto si necesitas manejar un status inicial
         createdAt: new Date(),
         updatedAt: new Date(),
+        // Creación de los detalles asociados
+        InvoiceDetail: {
+          create: invoiceDetails.map((detail: any, index: number) => ({
+            sequence: index + 1,
+            serviceId: detail.serviceId ? parseInt(detail.serviceId, 10) : null,
+            productId: detail.productId ? parseInt(detail.productId, 10) : null,
+            quantity: detail.quantity ? parseInt(detail.quantity, 10) : null,
+            price: parseFloat(detail.price),
+            subtotal: parseFloat(detail.price) * (detail.quantity ? parseInt(detail.quantity, 10) : 1),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })),
+        },
       },
       include: {
         branch: true,
         User: true,
-        InvoiceDetail: true,
+        InvoiceDetail: {
+          include: {
+            service: true,
+            product: true,
+          },
+        },
       },
     });
+
     response.json(newInvoiceHeader);
   } catch (error) {
     next(error);
