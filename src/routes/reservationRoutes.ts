@@ -9,7 +9,7 @@ router.post("/", multer().any(), reservationController.create);
 router.put("/", multer().any(), reservationController.update);
 router.get("/getByManager", reservationController.getByManager);
 router.get("/getById", reservationController.getById);
-router.get("/getByMonthYear", reservationController.getByMonthYear);
+router.get("/getByDateRange", reservationController.getByDateRange);
 router.get("/getByClient", reservationController.getByClient);
 
 

@@ -12,14 +12,11 @@ export const get = async (
   next: NextFunction
 ) => {
   try {
-
     const { id } = request.query;
 
     const filters: any = {};
 
     if (id) filters.id = parseInt(id.toString(), 10);
-
-
 
     const list: User[] = await prisma.user.findMany({
       where: filters,
@@ -48,7 +45,7 @@ export const getEmployees = async (
   try {
     const list: User[] = await prisma.user.findMany({
       where: {
-        role: Role.EMPLOYEE
+        role: Role.EMPLOYEE,
       },
       orderBy: {
         id: "asc",
@@ -73,7 +70,9 @@ export const getById = async (
   next: NextFunction
 ) => {
   try {
-    const idUser = parseInt(request.params.id);
+    let id = request.query.id;
+    if (!id) throw new Error("undefined ID");
+    const idUser = parseInt(id.toString());
     const objUser = await prisma.user.findUnique({
       where: { id: idUser },
       include: {
@@ -97,11 +96,11 @@ export const getEmployeesWithoutBranch = async (
   try {
     const employees: User[] = await prisma.user.findMany({
       where: {
-        role: 'EMPLOYEE',
+        role: "EMPLOYEE",
         branchId: null,
       },
       orderBy: {
-        id: 'asc',
+        id: "asc",
       },
       include: {
         Service: true,

@@ -74,6 +74,52 @@ export const getById = async (
   }
 };
 
+export const getByBranchAndDate = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const branchId = request.query.branchId ? parseInt(request.query.branchId.toString()) : null;
+    const date = request.query.date ? new Date(request.query.date.toString()) : null;
+
+    if (!branchId) {
+      return response.status(400).json({ message: 'branchId are required' });
+    }
+
+    if (!date) {
+      return response.status(400).json({ message: 'date are required' });
+    }
+
+    const schedules: Schedule[] = await prisma.schedule.findMany({
+      orderBy: {
+        id: 'asc',
+      },
+      where: {
+        branchId: branchId,
+        startDate: {
+          lte: date, // startDate is less than or equal to the selected date
+        },
+        endDate: {
+          gte: date, // endDate is greater than or equal to the selected date
+        },
+        status: true, // Optional: Ensure the schedule is active
+      },
+      include: {
+        branch: true,
+      },
+    });
+
+    if (schedules.length === 0) {
+      return response.status(404).json({ message: 'No schedules found for the selected date and branch' });
+    }
+
+    response.json(schedules);
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Crear
 export const create = async (
   request: Request,

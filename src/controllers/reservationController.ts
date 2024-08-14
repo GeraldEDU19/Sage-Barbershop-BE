@@ -88,6 +88,9 @@ export const getByManager = async (
 
     const objReservation = await prisma.reservation.findMany({
       where: { branchId: objManager.branchId },
+      orderBy: {
+        date: "desc",
+      },
       include: {
         status: true,
         branch: true,
@@ -110,9 +113,69 @@ export const create = async (
 ) => {
   try {
     const body = request.body;
+    const reservationDate = new Date(body.datetime);
+
+    // 1. Validar si la sucursal tiene un horario disponible en esa fecha
+    const availableSchedule = await prisma.schedule.findFirst({
+      where: {
+        branchId: parseInt(body.branchId, 10),
+        startDate: { lte: reservationDate },
+        endDate: { gte: reservationDate },
+        status: true, // Verifica que el horario esté activo
+      },
+    });
+
+    if (!availableSchedule) {
+      return response.status(400).json({
+        error: "No available schedule for the specified date.",
+      });
+    }
+
+    // 2. Obtener la duración del servicio
+    const service = await prisma.service.findUnique({
+      where: { id: parseInt(body.serviceId, 10) },
+      select: { duration: true }, // Asumiendo que duration es un campo que representa la duración en minutos
+    });
+
+    if (!service) {
+      return response.status(400).json({
+        error: "Invalid service ID.",
+      });
+    }
+
+    const reservationEndDate = new Date(reservationDate.getTime() + service.duration * 60000); // Suma la duración del servicio a la fecha de reserva
+
+    // 3. Validar que la nueva reserva no choque con otra reserva existente
+    const conflictingReservation = await prisma.reservation.findFirst({
+      where: {
+        branchId: parseInt(body.branchId, 10),
+        OR: [
+          {
+            date: {
+              lte: reservationEndDate,
+              gte: reservationDate,
+            },
+          },
+          {
+            date: {
+              lt: reservationDate,
+              gt: new Date(reservationDate.getTime() - service.duration * 60000),
+            },
+          },
+        ],
+      },
+    });
+
+    if (conflictingReservation) {
+      return response.status(400).json({
+        error: "The reservation conflicts with another existing reservation.",
+      });
+    }
+
+    // 4. Crear la nueva reservación
     const newReservation = await prisma.reservation.create({
       data: {
-        date: new Date(body.date),
+        date: reservationDate,
         answer1: body.answer1,
         answer2: body.answer2,
         answer3: body.answer3,
@@ -130,11 +193,13 @@ export const create = async (
         },
       },
     });
+
     response.json(newReservation);
   } catch (error) {
     next(error);
   }
 };
+
 
 // Actualizar una reservación
 export const update = async (
@@ -190,22 +255,29 @@ export const update = async (
   }
 };
 
-// Filtrar por mes y año
-export const getByMonthYear = async (
+// Filtrar por rango de fechas
+export const getByDateRange = async (
   request: Request,
   response: Response,
   next: NextFunction
 ) => {
-  const { year, month, idManager } = request.query;
+  const { startDate, endDate, idManager } = request.query;
 
-  if (!year || !month) {
-    return response.status(400).json({ error: "Year and month are required" });
+  if (!startDate || !endDate) {
+    return response.status(400).json({ error: "Start date and end date are required" });
   }
+
+  // Convert startDate and endDate to Date objects
+  const start = new Date(startDate as string);
+  const end = new Date(endDate as string);
+
+  // Ensure end date is inclusive
+  end.setDate(end.getDate() + 1);
 
   const filters: any = {
     date: {
-      gte: new Date(`${year}-${month}-01`),
-      lt: new Date(`${year}-${Number(month) + 1}-01`),
+      gte: start,
+      lt: end,
     },
   };
 
@@ -238,6 +310,7 @@ export const getByMonthYear = async (
     next(error);
   }
 };
+
 
 // Filtrar por nombre de cliente
 export const getByClient = async (

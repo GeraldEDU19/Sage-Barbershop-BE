@@ -12,9 +12,11 @@ export const get = async (req: Request, res: Response) => {
 
 export const getById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    let id = req.query.id;
+    if (!id) throw new Error("undefined ID");
+    const idStatus = parseInt(id.toString());
     const status = await prisma.status.findUnique({
-      where: { id: Number(id) },
+      where: { id: idStatus },
     });
     if (!status) return res.status(404).json({ error: "Status not found" });
     res.json(status);
