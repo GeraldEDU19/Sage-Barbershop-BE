@@ -145,14 +145,12 @@ export const update = async (
 ) => {
   try {
     const body = request.body;
-    const idInvoiceHeader = parseInt(request.params.id);
+    const idInvoiceHeader = parseInt(body.id, 10);
 
-    // Obtener invoice header viejo
+    // Obtener el invoice header existente
     const oldInvoiceHeader = await prisma.invoiceHeader.findUnique({
       where: { id: idInvoiceHeader },
       include: {
-        branch: true,
-        User: true,
         InvoiceDetail: true,
       },
     });
@@ -161,6 +159,24 @@ export const update = async (
       return response.status(404).json({ message: "InvoiceHeader not found" });
     }
 
+    // Eliminar todos los detalles actuales
+    await prisma.invoiceDetail.deleteMany({
+      where: { invoiceHeaderId: idInvoiceHeader },
+    });
+
+    // Crear nuevos detalles
+    const newInvoiceDetails = body.invoiceDetails.map((detail: any, index: number) => ({
+      sequence: index + 1,
+      serviceId: detail.serviceId ? parseInt(detail.serviceId, 10) : null,
+      productId: detail.productId ? parseInt(detail.productId, 10) : null,
+      quantity: detail.quantity ? parseInt(detail.quantity, 10) : null,
+      price: parseFloat(detail.price),
+      subtotal: parseFloat(detail.price) * (detail.quantity ? parseInt(detail.quantity, 10) : 1),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }));
+
+    // Actualizar el invoiceHeader y agregar nuevos detalles
     const updatedInvoiceHeader = await prisma.invoiceHeader.update({
       where: {
         id: idInvoiceHeader,
@@ -176,18 +192,31 @@ export const update = async (
         total: parseFloat(body.total),
         status: body.status === 'true',
         updatedAt: new Date(),
+
+        // Crear los nuevos detalles de factura
+        InvoiceDetail: {
+          create: newInvoiceDetails,
+        },
       },
       include: {
         branch: true,
         User: true,
-        InvoiceDetail: true,
+        InvoiceDetail: {
+          include: {
+            service: true,
+            product: true,
+          },
+        },
       },
     });
+
     response.json(updatedInvoiceHeader);
   } catch (error) {
     next(error);
   }
 };
+
+
 
 // Crear un nuevo invoice detail
 export const createDetail = async (
@@ -278,7 +307,6 @@ export const updateStatusToTrue = async (
   next: NextFunction
 ) => {
   try {
-    console.log("🚀 ~ idInvoiceHeader: +++++++++++++++", request.body)
     const idInvoiceHeader = parseInt(request.body.id);
     
 
