@@ -29,4 +29,16 @@ export const schedules = [
     branchId: 5,
     status: true,
   },
+  {
+    startDate: new Date("2024-08-20T13:00:00.000Z"),
+    endDate: new Date("2024-08-20T23:00:00.000Z"),
+    branchId: 1,
+    status: true,
+  },
+  {
+    startDate: new Date("2024-08-20T23:01:00.000Z"),
+    endDate: new Date("2024-08-21T02:59:00.000Z"),
+    branchId: 1,
+    status: false,
+  },
 ];
