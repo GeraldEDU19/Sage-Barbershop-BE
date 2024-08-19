@@ -113,7 +113,7 @@ export const create = async (
 ) => {
   try {
     const body = request.body;
-    const reservationDate = new Date(body.datetime);
+    const reservationDate = new Date(body.date);
 
     // 1. Validar si la sucursal tiene un horario disponible en esa fecha
     const availableSchedule = await prisma.schedule.findFirst({
@@ -175,7 +175,7 @@ export const create = async (
     // 4. Crear la nueva reservación
     const newReservation = await prisma.reservation.create({
       data: {
-        date: reservationDate,
+        date: body.datetime,
         answer1: body.answer1,
         answer2: body.answer2,
         answer3: body.answer3,

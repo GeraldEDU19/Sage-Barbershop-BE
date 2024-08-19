@@ -181,9 +181,9 @@ export const update = async (
 ) => {
   try {
     const body = request.body;
-    const idUser = parseInt(request.params.id);
+    const idUser = parseInt(body.id);
 
-    // Obtener usuario viejo
+    // Obtener usuario existente
     const oldUser = await prisma.user.findUnique({
       where: { id: idUser },
       include: {
@@ -198,25 +198,35 @@ export const update = async (
       return response.status(404).json({ message: "User not found" });
     }
 
+    // Si se recibe un password, encriptarlo
     if (body.password) {
       body.password = await bcryptService.encryptText(body.password);
     }
 
+    // Preparar los datos de actualización
+    const updateData: any = {
+      name: body.name,
+      surname: body.surname,
+      phone: body.phone,
+      email: body.email,
+      address: body.address,
+      birthdate: body.birthdate? new Date(body.birthdate): oldUser.birthdate,
+      password: body.password,
+      role: body.role,
+      updatedAt: new Date(),
+    };
+
+    // Si se recibe un branchId, actualizar la relación con Branch
+    if (body.branchId) {
+      updateData.branchId = parseInt(body.branchId);
+    }
+
+    // Actualizar el usuario
     const updatedUser = await prisma.user.update({
       where: {
         id: idUser,
       },
-      data: {
-        name: body.name,
-        surname: body.surname,
-        phone: body.phone,
-        email: body.email,
-        address: body.address,
-        birthdate: new Date(body.birthdate),
-        password: body.password,
-        role: body.role,
-        updatedAt: new Date(),
-      },
+      data: updateData,
       include: {
         Service: true,
         Branch: true,
@@ -224,6 +234,7 @@ export const update = async (
         Invoice: true,
       },
     });
+
     response.json(updatedUser);
   } catch (error) {
     next(error);
