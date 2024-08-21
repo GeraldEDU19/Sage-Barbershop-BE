@@ -13,6 +13,6 @@ router.get("/getByDateRange", reservationController.getByDateRange);
 router.get("/getByClient", reservationController.getByClient);
 router.get("/getTodayCountByBranch", reservationController.getTodayCountByBranch);
 router.get("/getCountByStatus", reservationController.getCountByStatus);
-
+router.get("/getByBranch", reservationController.getByBranchId);
 
 export default router;
