@@ -113,18 +113,20 @@ export const create = async (
 ) => {
   try {
     const body = request.body;
-    const reservationDate = new Date(body.date);
+    const reservationDate = new Date(body.datetime);
+    console.log("🚀 ~ reservationDate:", reservationDate)
 
     // 1. Validar si la sucursal tiene un horario disponible en esa fecha
     const availableSchedule = await prisma.schedule.findFirst({
       where: {
         branchId: parseInt(body.branchId, 10),
-        startDate: { lte: reservationDate },
-        endDate: { gte: reservationDate },
+        startDate: { lte: reservationDate },  // Fecha de inicio debe ser menor o igual que la fecha de reservación
+        endDate: { gte: reservationDate },    // Fecha de fin debe ser mayor o igual que la fecha de reservación
         status: true, // Verifica que el horario esté activo
       },
     });
-
+    
+    
     if (!availableSchedule) {
       return response.status(400).json({
         error: "No available schedule for the specified date.",
@@ -268,7 +270,7 @@ export const update = async (
         id: idReservation,
       },
       data: {
-        date: new Date(body.date),
+        date: new Date(body.datetime),
         answer1: body.answer1,
         answer2: body.answer2,
         answer3: body.answer3,

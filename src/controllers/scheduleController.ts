@@ -144,6 +144,7 @@ export const create = async (
         ],
         branchId: parseInt(body.branchId, 10),
       },
+        
     });
 
     if (conflictingSchedule) {
