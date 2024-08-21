@@ -361,3 +361,107 @@ export const getByClient = async (
     next(error);
   }
 };
+
+// Obtener cantidad de citas por sucursal para el día actual
+export const getTodayCountByBranch = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    // Obtener la fecha actual sin la hora
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Establece la hora a 00:00:00 para comparar solo la fecha
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1); // El día siguiente para el límite superior
+
+    // Agrupar por branchId y contar las reservas
+    const result = await prisma.reservation.groupBy({
+      by: ['branchId'],
+      where: {
+        date: {
+          gte: today, // Fecha mayor o igual a hoy
+          lt: tomorrow, // Fecha menor a mañana (es decir, solo las de hoy)
+        },
+      },
+      _count: {
+        id: true,
+      },
+      orderBy: {
+        _count: {
+          id: "desc",
+        },
+      },
+    });
+
+    // Obtener los nombres de las sucursales basados en los IDs agrupados
+    const formattedResult = await Promise.all(
+      result.map(async (item) => {
+        const branch = await prisma.branch.findUnique({
+          where: { id: item.branchId },
+          select: { name: true },
+        });
+        return {
+          branchName: branch?.name || "Unknown Branch",
+          count: item._count.id,
+        };
+      })
+    );
+
+    response.json(formattedResult);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Obtener cantidad total de citas por estado para una sucursal dada
+export const getCountByStatus = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  const { branchId } = request.query;
+
+  if (!branchId) {
+    return response.status(400).json({ error: "Branch ID is required" });
+  }
+
+  try {
+    const branchIdInt = parseInt(branchId.toString(), 10);
+
+    // Agrupar reservas por estado y contar la cantidad de cada estado
+    const reservationCounts = await prisma.reservation.groupBy({
+      by: ['statusId'],
+      where: {
+        branchId: branchIdInt,
+      },
+      _count: {
+        id: true,
+      },
+      orderBy: {
+        statusId: 'asc',
+      },
+    });
+
+    // Obtener la descripción del estado y el color basados en el statusId
+    const formattedResult = await Promise.all(
+      reservationCounts.map(async (item) => {
+        const status = await prisma.status.findUnique({
+          where: { id: item.statusId },
+          select: { description: true, color: true },
+        });
+        return {
+          statusId: item.statusId,
+          statusDescription: status?.description || "Unknown Status",
+          color: status?.color || "#000000",
+          count: item._count.id,
+        };
+      })
+    );
+
+    response.json(formattedResult);
+  } catch (error) {
+    next(error);
+  }
+};

@@ -10,7 +10,8 @@ export const get = async (
   next: NextFunction
 ) => {
   try {
-    const { id, date, branchId, userId, status, administratorId } = request.query;
+    const { id, date, branchId, userId, status, administratorId } =
+      request.query;
 
     const filters: any = {};
 
@@ -18,7 +19,7 @@ export const get = async (
     if (id) filters.id = parseInt(id.toString(), 10);
     if (branchId) filters.branchId = parseInt(branchId.toString(), 10);
     if (userId) filters.userId = parseInt(userId.toString(), 10);
-    if (status) filters.status = status === 'true';
+    if (status) filters.status = status === "true";
 
     let branchFilter: any = {};
 
@@ -27,19 +28,19 @@ export const get = async (
       branchFilter = {
         user: {
           some: {
-            id: adminId
-          }
-        }
+            id: adminId,
+          },
+        },
       };
     }
 
     const list = await prisma.invoiceHeader.findMany({
       where: {
         ...filters,
-        branch: branchFilter
+        branch: branchFilter,
       },
       orderBy: {
-        date: 'desc',
+        date: "desc",
       },
       include: {
         branch: true,
@@ -70,8 +71,7 @@ export const getById = async (
     const objInvoiceHeader = await prisma.invoiceHeader.findUnique({
       where: { id: idInvoiceHeader },
       include: {
-        branch: {
-        },
+        branch: {},
         User: true,
         InvoiceDetail: true,
       },
@@ -90,7 +90,7 @@ export const create = async (
 ) => {
   try {
     let { branchId, date, invoiceDetails, total, userId } = request.body;
-    console.log("🚀 ~ request.body:", request.body)
+    console.log("🚀 ~ request.body:", request.body);
     // Crear el nuevo InvoiceHeader
     const newInvoiceHeader = await prisma.invoiceHeader.create({
       data: {
@@ -113,7 +113,9 @@ export const create = async (
             productId: detail.productId ? parseInt(detail.productId, 10) : null,
             quantity: detail.quantity ? parseInt(detail.quantity, 10) : null,
             price: parseFloat(detail.price),
-            subtotal: parseFloat(detail.price) * (detail.quantity ? parseInt(detail.quantity, 10) : 1),
+            subtotal:
+              parseFloat(detail.price) *
+              (detail.quantity ? parseInt(detail.quantity, 10) : 1),
             createdAt: new Date(),
             updatedAt: new Date(),
           })),
@@ -165,16 +167,20 @@ export const update = async (
     });
 
     // Crear nuevos detalles
-    const newInvoiceDetails = body.invoiceDetails.map((detail: any, index: number) => ({
-      sequence: index + 1,
-      serviceId: detail.serviceId ? parseInt(detail.serviceId, 10) : null,
-      productId: detail.productId ? parseInt(detail.productId, 10) : null,
-      quantity: detail.quantity ? parseInt(detail.quantity, 10) : null,
-      price: parseFloat(detail.price),
-      subtotal: parseFloat(detail.price) * (detail.quantity ? parseInt(detail.quantity, 10) : 1),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }));
+    const newInvoiceDetails = body.invoiceDetails.map(
+      (detail: any, index: number) => ({
+        sequence: index + 1,
+        serviceId: detail.serviceId ? parseInt(detail.serviceId, 10) : null,
+        productId: detail.productId ? parseInt(detail.productId, 10) : null,
+        quantity: detail.quantity ? parseInt(detail.quantity, 10) : null,
+        price: parseFloat(detail.price),
+        subtotal:
+          parseFloat(detail.price) *
+          (detail.quantity ? parseInt(detail.quantity, 10) : 1),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+    );
 
     // Actualizar el invoiceHeader y agregar nuevos detalles
     const updatedInvoiceHeader = await prisma.invoiceHeader.update({
@@ -190,7 +196,7 @@ export const update = async (
           connect: { id: parseInt(body.userId, 10) },
         },
         total: parseFloat(body.total),
-        status: body.status === 'true',
+        status: body.status === "true",
         updatedAt: new Date(),
 
         // Crear los nuevos detalles de factura
@@ -215,8 +221,6 @@ export const update = async (
     next(error);
   }
 };
-
-
 
 // Crear un nuevo invoice detail
 export const createDetail = async (
@@ -274,7 +278,7 @@ export const updateDetail = async (
   try {
     const body = request.body;
     const invoiceHeaderId = parseInt(body.invoiceHeaderId, 10);
-    const sequence = parseInt(request.params.id)
+    const sequence = parseInt(request.params.id);
 
     // Actualizar el invoice detail
     const updatedInvoiceDetail = await prisma.invoiceDetail.update({
@@ -299,7 +303,6 @@ export const updateDetail = async (
   }
 };
 
-
 // Actualizar el status de un invoice header a true
 export const updateStatusToTrue = async (
   request: Request,
@@ -308,7 +311,6 @@ export const updateStatusToTrue = async (
 ) => {
   try {
     const idInvoiceHeader = parseInt(request.body.id);
-    
 
     // Verificar si el invoiceHeader existe
     const invoiceHeader = await prisma.invoiceHeader.findUnique({
@@ -331,6 +333,98 @@ export const updateStatusToTrue = async (
     });
 
     response.json(updatedInvoiceHeader);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Obtener los 3 servicios más vendidos en todas las sucursales
+export const getTopServices = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const topServices = await prisma.invoiceDetail.groupBy({
+      by: ["serviceId"],
+      _sum: {
+        quantity: true,
+      },
+      where: {
+        serviceId: {
+          not: null, // Filtrar aquellos que tienen un serviceId válido
+        },
+      },
+      orderBy: {
+        _sum: {
+          quantity: "desc",
+        },
+      },
+      take: 3, // Limitar el resultado a los 3 primeros
+    });
+
+    // Enriquecer los datos con información del servicio
+    const detailedTopServices = await Promise.all(
+      topServices.map(async (service) => {
+        const serviceDetails = await prisma.service.findUnique({
+          where: { id: service.serviceId! },
+          select: { name: true, price: true },
+        });
+        return {
+          serviceId: service.serviceId,
+          serviceName: serviceDetails?.name,
+          totalQuantity: service._sum.quantity,
+        };
+      })
+    );
+
+    response.json(detailedTopServices);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Obtener los 3 productos más vendidos en todas las sucursales
+export const getTopProducts = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  try {
+    const topProducts = await prisma.invoiceDetail.groupBy({
+      by: ["productId"],
+      _sum: {
+        quantity: true,
+      },
+      where: {
+        productId: {
+          not: null, // Filtrar aquellos que tienen un productId válido
+        },
+      },
+      orderBy: {
+        _sum: {
+          quantity: "desc",
+        },
+      },
+      take: 3, // Limitar el resultado a los 3 primeros
+    });
+
+    // Enriquecer los datos con información del producto
+    const detailedTopProducts = await Promise.all(
+      topProducts.map(async (product) => {
+        const productDetails = await prisma.product.findUnique({
+          where: { id: product.productId! },
+          select: { name: true, price: true },
+        });
+        return {
+          productId: product.productId,
+          productName: productDetails?.name,
+          totalQuantity: product._sum.quantity,
+        };
+      })
+    );
+
+    response.json(detailedTopProducts);
   } catch (error) {
     next(error);
   }

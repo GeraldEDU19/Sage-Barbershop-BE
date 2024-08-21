@@ -198,11 +198,6 @@ export const update = async (
       return response.status(404).json({ message: "User not found" });
     }
 
-    // Si se recibe un password, encriptarlo
-    if (body.password) {
-      body.password = await bcryptService.encryptText(body.password);
-    }
-
     // Preparar los datos de actualización
     const updateData: any = {
       name: body.name,
@@ -210,11 +205,15 @@ export const update = async (
       phone: body.phone,
       email: body.email,
       address: body.address,
-      birthdate: body.birthdate? new Date(body.birthdate): oldUser.birthdate,
-      password: body.password,
+      birthdate: body.birthdate ? new Date(body.birthdate) : oldUser.birthdate,
       role: body.role,
       updatedAt: new Date(),
     };
+
+    // Si se recibe un password, encriptarlo
+    if (body.password) {
+      body.password = await bcryptService.encryptText(body.password);
+    }
 
     // Si se recibe un branchId, actualizar la relación con Branch
     if (body.branchId) {
