@@ -200,6 +200,43 @@ export const create = async (
   }
 };
 
+export const getByBranchId = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
+  const { id } = request.query;
+
+  if (!id) {
+    return response.status(400).json({ error: "Branch ID is required" });
+  }
+
+  try {
+    const branchIdInt = parseInt(id.toString(), 10);
+    console.log("🚀 ~ branchIdInt:", branchIdInt)
+
+    const reservations: Reservation[] = await prisma.reservation.findMany({
+      where: { branchId: branchIdInt },
+      orderBy: {
+        date: "desc",
+      },
+      include: {
+        status: true,
+        branch: true,
+        service: true,
+        User: true,
+      },
+    });
+
+    if (reservations.length === 0) {
+      return response.status(404).json({ message: "No reservations found for the given branch ID" });
+    }
+
+    response.json(reservations);
+  } catch (error) {
+    next(error);
+  }
+};
 
 // Actualizar una reservación
 export const update = async (

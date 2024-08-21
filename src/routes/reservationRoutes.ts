@@ -11,6 +11,6 @@ router.get("/getByManager", reservationController.getByManager);
 router.get("/getById", reservationController.getById);
 router.get("/getByDateRange", reservationController.getByDateRange);
 router.get("/getByClient", reservationController.getByClient);
-
+router.get("/getByBranch", reservationController.getByBranchId);
 
 export default router;
